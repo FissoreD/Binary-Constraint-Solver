@@ -7,43 +7,85 @@ type 'e dll_node = {
 }
 
 and 'e sentinel = { mutable first : 'e dll_node; mutable last : 'e dll_node }
-and 'e t = 'e sentinel option ref
+and 'e t = { name : string; content : 'e sentinel option ref }
 
-let empty () = ref None
-let is_empty d = !d = None
+let empty name = { name; content = ref None }
+let get d = Option.get !d
+let is_empty d = !(d.content) = None
 let make_node value dll_father = { value; prev = None; next = None; dll_father }
 
+let add_after_node current node =
+  if current.dll_father != node.dll_father then
+    invalid_arg "Can't add after, in nodes with differet fathers";
+  node.prev <- Some current;
+  node.next <- current.next;
+  current.next <- Some node;
+  (match node.next with
+  | None -> (Option.get !(node.dll_father.content)).last <- node
+  | Some e -> e.prev <- Some node);
+  node
+
 let add_after current value =
+  if is_empty current.dll_father then invalid_arg "Why it is empty ?? a";
   let value = make_node value current.dll_father in
-  value.prev <- Some current;
-  value.next <- current.next;
-  current.next <- Some value;
-  match value.next with
-  | None -> (Option.get !(value.dll_father)).last <- value
-  | Some e -> e.prev <- Some value
+  add_after_node current value
+
+let add_before_node current node =
+  node.next <- Some current;
+  node.prev <- current.prev;
+  current.prev <- Some node;
+  (match node.prev with
+  | None -> (Option.get !(node.dll_father.content)).first <- node
+  | Some e -> e.next <- Some node);
+  node
 
 let add_before current value =
+  (* if is_empty current.dll_father then invalid_arg "Why it is empty ?? b"; *)
   let value = make_node value current.dll_father in
-  value.next <- Some current;
-  value.prev <- current.prev;
-  current.prev <- Some value;
-  match value.prev with
-  | None -> (Option.get !(value.dll_father)).first <- value
-  | Some e -> e.next <- Some value
+  add_before_node current value
 
 let append e domain =
-  match !domain with
+  match !(domain.content) with
   | None ->
       let node = make_node e domain in
-      domain := Some { first = node; last = node }
+      domain.content := Some { first = node; last = node };
+      if is_empty node.dll_father then invalid_arg "Why it is empty ?? c";
+      node
   | Some { last; _ } -> add_after last e
 
-let prepend e domain =
+let append_node node domain =
   match !domain with
   | None ->
+      domain := Some { first = node; last = node };
+      node
+  | Some { last; _ } -> add_after_node last node
+
+let prepend e domain =
+  match !(domain.content) with
+  | None ->
+      if is_empty e.dll_father then invalid_arg "Why it is empty ?? d";
       let node = make_node e domain in
-      domain := Some { first = node; last = node }
+      domain.content := Some { first = node; last = node };
+      node
   | Some { first; _ } -> add_before first e
+
+let insert e =
+  match !(e.dll_father.content) with
+  | None -> e.dll_father.content := Some { first = e; last = e }
+  | Some father -> (
+      match (e.prev, e.next) with
+      | None, None ->
+          father.first <- e;
+          father.last <- e
+      | Some prev, None ->
+          father.last <- e;
+          prev.next <- Some e
+      | None, Some succ ->
+          father.first <- e;
+          succ.prev <- Some e
+      | Some prev, Some succ ->
+          prev.next <- Some e;
+          succ.prev <- Some e)
 
 let remove_after current =
   match current.next with
@@ -65,7 +107,7 @@ let iter_gen is_rev f d =
   let get n = if is_rev then n.prev else n.next in
   if is_empty d then ()
   else
-    let e = Option.get !d in
+    let e = Option.get !(d.content) in
     let rec aux current =
       f current;
       match get current with None -> () | Some e -> aux e
@@ -75,30 +117,49 @@ let iter_gen is_rev f d =
 let iter f d = iter_gen false f d
 let iter_rev f d = iter_gen true f d
 
-let find p (t : 'a t) =
-  match !t with
-  | None -> None
-  | Some { first; _ } ->
-      let rec aux e =
-        if p e then Some e
-        else match e.next with None -> None | Some e -> aux e
-      in
-      aux first
+let rec find_from p (t : 'a dll_node) =
+  if p t then Some t
+  else match t.next with None -> None | Some e -> find_from p e
 
-let find_assoc p (t : 'a t) =
-  match find (fun e -> p (fst e.value)) t with
+let find p (t : 'a t) =
+  match !(t.content) with
   | None -> None
-  | Some e -> Some (snd e.value)
+  | Some { first; _ } -> find_from p first
+
+let find_assoc p (t : 'a t) = find (fun e -> p (fst e.value)) t
+let add_if_absent p e d = match find p d with None -> append e d | Some e -> e
+
+let add_assoc k value d =
+  match find_assoc (( == ) k) d with
+  | None ->
+      Printf.printf "Adding %s to %s\n" value.name k.name;
+      let nd = empty "" in
+      append (k, nd) d |> ignore;
+      append value nd |> ignore
+  | Some nd ->
+      if find (fun e -> e.value == value) (snd nd.value) = None then
+        Printf.printf "Adding %s to %s\n" value.name k.name;
+      add_if_absent (fun e -> e.value == value) value (snd nd.value) |> ignore
+
+let find_all p (t : 'a t) =
+  match !(t.content) with
+  | None -> []
+  | Some { first; _ } ->
+      let rec aux e acc =
+        let acc = if p e then e :: acc else acc in
+        match e.next with None -> acc | Some e -> aux e acc
+      in
+      aux first []
 
 let find_by_value (value : 'a) = find (fun e -> e.value = value)
 let exsist p (t : 'a t) = find p t <> None
 let not_exsist p (t : 'a t) = find p t = None
 
 let remove (node : 'a dll_node) =
-  let dom1 = Option.get !(node.dll_father) in
+  let dom1 = Option.get !(node.dll_father.content) in
   match (node.prev, node.next) with
   (* TODO: do not remember to push to stack this operation *)
-  | None, None -> node.dll_father := None
+  | None, None -> node.dll_father.content := None
   | Some prev, None ->
       remove_after prev |> ignore;
       dom1.last <- prev
@@ -109,34 +170,32 @@ let remove (node : 'a dll_node) =
 
 let remove_by_value (value : 'a) (domain : 'a t) =
   match find (fun e -> e.value = value) domain with
-  | None -> ()
-  | Some node -> remove node
+  | None -> None
+  | Some node ->
+      remove node;
+      Some node
 
 let remove_by_list_of_values l domain =
-  List.iter ((Fun.flip remove_by_value) domain) l
+  List.map ((Fun.flip remove_by_value) domain) l
 
 (** Takes a ('a list) L and returns a dll containing the elements of L *)
-let of_list l : 'a t =
-  let domain = ref None in
-  let rec aux node = function
+let of_list name l : 'a t =
+  let domain = empty name in
+  let rec aux = function
     | [] -> domain
     | hd :: tl ->
-        add_after node hd;
-        (Option.get !domain).last <- Option.get node.next;
-        aux (Option.get node.next) tl
+        append hd domain |> ignore;
+        aux tl
   in
-  match l with
-  | [] -> domain
-  | hd :: tl ->
-      let fst_node = make_node hd domain in
-      domain := Some { first = fst_node; last = fst_node };
-      aux fst_node tl
+  aux l
 
 let to_list (d : 'a t) =
-  match !d with
+  match !(d.content) with
   | None -> []
   | Some e ->
       let rec aux { value; next; _ } =
         value :: (match next with None -> [] | Some e -> aux e)
       in
       aux e.first
+
+let length dll = List.length (to_list dll)
