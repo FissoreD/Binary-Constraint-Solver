@@ -64,13 +64,16 @@ let _test_remove () =
 let _ac_3 () =
   let d1, d2, support = build_constraint () in
 
-  let filtered = AC_3.revise (DLL.remove_by_value 4 d2 |> Option.get) support in
+  let supp = AC_3.build_support support in
+  AC_3.print_compteurs supp;
+
+  let filtered = AC_3.revise (DLL.remove_by_value 4 d2 |> Option.get) supp in
 
   print_int_domain d1;
   print_int_domain d2;
 
   print_string "removed = ";
-  print_list_nodes filtered.to_remove_in_domain;
+  print_list_nodes (AC_3.get_to_remove filtered);
 
   print_endline "Backtrack:";
   AC_3.back_track filtered;
@@ -93,8 +96,8 @@ let _ac_4 () =
 
       let removed_list = AC_4.revise removed1 supp in
       print_string "removed: ";
-      print_list_nodes removed_list.to_remove_in_domain;
-      List.iter DLL.remove removed_list.to_remove_in_domain;
+      print_list_nodes (AC_4.get_to_remove removed_list);
+      List.iter DLL.remove (AC_4.get_to_remove removed_list);
       Queue.push removed_list stack)
     [ 4 ];
 
@@ -104,8 +107,8 @@ let _ac_4 () =
 
       let removed_list = AC_4.revise removed1 supp in
       print_string "removed: ";
-      print_list_nodes removed_list.to_remove_in_domain;
-      List.iter DLL.remove removed_list.to_remove_in_domain;
+      print_list_nodes (AC_4.get_to_remove removed_list);
+      List.iter DLL.remove (AC_4.get_to_remove removed_list);
       Queue.push removed_list stack)
     [];
 
@@ -140,20 +143,20 @@ let _ac_6 () =
     (fun e ->
       let removed1 = Option.get (DLL.remove_by_value e d2) in
 
-      let removed_list = AC_6.revise removed1 supp support in
+      let removed_list = AC_6.revise removed1 supp in
       print_string "removed: ";
-      print_list_nodes removed_list.to_remove_in_domain;
-      List.iter DLL.remove removed_list.to_remove_in_domain)
+      print_list_nodes (AC_6.get_to_remove removed_list);
+      List.iter DLL.remove (AC_6.get_to_remove removed_list))
     [ 0; 2 ];
 
   List.iter
     (fun e ->
       let removed1 = Option.get (DLL.remove_by_value e d1) in
 
-      let removed_list = AC_6.revise removed1 supp support in
+      let removed_list = AC_6.revise removed1 supp in
       print_string "removed: ";
-      print_list_nodes removed_list.to_remove_in_domain;
-      List.iter DLL.remove removed_list.to_remove_in_domain)
+      print_list_nodes (AC_6.get_to_remove removed_list);
+      List.iter DLL.remove (AC_6.get_to_remove removed_list))
     [ 2 ];
 
   AC_6.print_compteurs supp;
@@ -162,4 +165,21 @@ let _ac_6 () =
   print_int_domain d1;
   print_int_domain d2
 
-let () = _ac_3 ()
+let () =
+  let module Filtr = Filtrage.Make (AC_6) in
+  let _d1, _d2, support = build_constraint () in
+  let print () =
+    Filtr.print_domains ();
+    Filtr.print_compteurs ()
+  in
+  Filtr.build_support support;
+  print ();
+
+  Filtr.remove_by_value ~verbose:true 4 _d2 |> ignore;
+  print_endline "-- After Remove --";
+  Filtr.print_domains ();
+
+  Filtr.back_track ();
+  print_endline "-- After Backtrack --";
+  print ()
+(* _ac_3 () *)

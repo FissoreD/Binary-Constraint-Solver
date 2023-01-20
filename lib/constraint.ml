@@ -44,3 +44,17 @@ let add_constraint (support : int supports) a b =
   |> ignore;
   DLL.add_assoc a.dll_father b.dll_father support.constraint_binding;
   DLL.add_assoc b.dll_father a.dll_father support.constraint_binding
+
+let print_int_domain ?(is_rev = false) d =
+  (* Printf.printf "%s :" d.name; *)
+  (if is_rev then DLL.iter_rev else DLL.iter)
+    (fun { value; _ } -> Printf.printf "%d;" value)
+    d;
+  print_newline ()
+
+let print_domains f { domains; _ } =
+  print_endline "-- Start Domains --";
+  DLL.iter_value f domains;
+  print_endline "--- End Domains --"
+
+let print_int_domains = print_domains print_int_domain
