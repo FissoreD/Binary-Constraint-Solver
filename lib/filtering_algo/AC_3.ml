@@ -1,7 +1,9 @@
 module AC_3 : Filtrage.Algo_Filtrage = struct
+  exception Not_in_support of string
+
   module DLL = DoublyLinkedList
 
-  type 'a remove_in_domain = 'a DLL.dll_node list
+  type 'a remove_in_domain = string DLL.dll_node list
 
   type 'a stack_operation = {
     to_remove_in_domain : 'a DLL.dll_node list;
@@ -19,12 +21,12 @@ module AC_3 : Filtrage.Algo_Filtrage = struct
   If the list is empty, then no modification has been performed on d1
 *)
   let revise (d1 : 'a DLL.dll_node) (support : 'a compteurs) =
-    let to_remove_in_domain : 'a DLL.dll_node list ref = ref [] in
-    (match !(d1.dll_father.content) with
-    | None -> ()
+    match !(d1.dll_father.content) with
+    | None -> raise (Not_in_support "AC_3")
     | Some _ ->
+        let to_remove_in_domain : 'a DLL.dll_node list ref = ref [] in
         DLL.iter
-          (fun (d2 : 'a DoublyLinkedList.t DoublyLinkedList.dll_node) ->
+          (fun (d2 : 'a DLL.t DLL.dll_node) ->
             DLL.iter
               (fun current ->
                 let remove_current =
@@ -35,10 +37,8 @@ module AC_3 : Filtrage.Algo_Filtrage = struct
                 if remove_current then
                   to_remove_in_domain := current :: !to_remove_in_domain)
               d2.value)
-          ((Option.get
-              (DLL.find_assoc (( == ) d1.dll_father) support.constraint_binding))
-             .value |> snd));
-    { input = d1; to_remove_in_domain = !to_remove_in_domain }
+          (Constraint.get_constraint_binding support d1.dll_father);
+        { input = d1; to_remove_in_domain = !to_remove_in_domain }
 
   let back_track { to_remove_in_domain; input } =
     List.iter DLL.insert to_remove_in_domain;

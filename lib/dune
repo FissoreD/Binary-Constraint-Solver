@@ -1,2 +1,5 @@
+(include_subdirs unqualified)
+
 (library
- (name Constraint_Solver_with_Backpropagation))
+ (name Constraint_Solver_with_Backpropagation)
+ (libraries str))

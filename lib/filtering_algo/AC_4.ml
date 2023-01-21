@@ -1,4 +1,6 @@
 module AC_4 : Filtrage.Algo_Filtrage = struct
+  exception Not_in_support of string
+
   module DLL = DoublyLinkedList
 
   type 'a double_connection = {
@@ -6,27 +8,25 @@ module AC_4 : Filtrage.Algo_Filtrage = struct
     mutable assoc : 'a double_connection DLL.dll_node option;
   }
 
-  type 'a remove_in_domain = 'a DLL.dll_node list
+  type 'a remove_in_domain = string DLL.dll_node list
   type 'a cell_type = 'a DLL.dll_node * 'a double_connection DLL.t
 
   type 'a compteurs = 'a cell_type DLL.t
-  (**
-  For each constraint and each value there is a linked list of supports  
-*)
+  (** For each constraint and each value there is a linked list of supports  *)
 
   type 'a stack_operation = {
     to_remove_in_domain : 'a remove_in_domain;
-    to_remove_in_support : 'a cell_type DLL.dll_node list;
+    to_remove_in_support : 'a cell_type DLL.dll_node;
     to_remove_sibling : 'a double_connection DLL.dll_node list;
     input : 'a DLL.dll_node;
   }
 
-  let print_compteurs (c : int compteurs) =
+  let print_compteurs (c : 'a compteurs) =
     DLL.iter
-      (fun ({ value; _ } : int cell_type DLL.dll_node) ->
+      (fun ({ value; _ } : 'a cell_type DLL.dll_node) ->
         let a, b = value in
-        Printf.printf "%d is supported by " a.value;
-        DLL.iter (fun e -> Printf.printf "%d " e.value.value.value) b;
+        Printf.printf "%s is supported by " a.value;
+        DLL.iter (fun e -> Printf.printf "%s " e.value.value.value) b;
         print_newline ())
       c
 
@@ -58,37 +58,38 @@ module AC_4 : Filtrage.Algo_Filtrage = struct
 *)
   let revise (node_to_remove : 'a DLL.dll_node) (compteurs : 'a compteurs) =
     (* Look for the support to remove in compteurs *)
-    let to_remove_in_domain : 'a DLL.dll_node list ref = ref [] in
-    let to_remove_sibling = ref [] in
-    let to_remove_in_support = ref [] in
-    (match DLL.find (fun e -> fst e.value == node_to_remove) compteurs with
-    | None -> ()
+    match DLL.find (fun e -> fst e.value == node_to_remove) compteurs with
+    | None -> raise (Not_in_support "AC_4")
     | Some remove ->
+        let to_remove_in_domain : 'a DLL.dll_node list ref = ref [] in
+        let to_remove_sibling = ref [] in
         (* We remove the support since it exists *)
         DLL.remove remove;
-        to_remove_in_support := [ remove ];
         DLL.iter
           (fun (current : 'a double_connection DLL.dll_node) ->
             let sibling = Option.get current.value.assoc in
             (* We remove the support from the values depending on node_to_remove *)
             DLL.remove sibling;
             to_remove_sibling := sibling :: !to_remove_sibling;
-            (* Here we remove the value from the other domain since the value has no support anymore *)
-            if DLL.is_empty sibling.dll_father then
+            if
+              (* Here we remove the value from the other domain since the value has no more support *)
+              DLL.not_exsist
+                (fun e -> e.value.value.dll_father == node_to_remove.dll_father)
+                sibling.dll_father
+            then
               to_remove_in_domain := current.value.value :: !to_remove_in_domain)
-          (* !(snd e.value) is the dll of values depending on e*)
-          (snd remove.value));
-    {
-      to_remove_in_domain = !to_remove_in_domain;
-      to_remove_in_support = !to_remove_in_support;
-      to_remove_sibling = !to_remove_sibling;
-      input = node_to_remove;
-    }
+          (snd remove.value);
+        {
+          to_remove_in_domain = !to_remove_in_domain;
+          to_remove_in_support = remove;
+          to_remove_sibling = !to_remove_sibling;
+          input = node_to_remove;
+        }
 
   let back_track
       { to_remove_in_domain; to_remove_in_support; to_remove_sibling; input } =
     List.iter DLL.insert to_remove_in_domain;
-    List.iter DLL.insert to_remove_in_support;
+    DLL.insert to_remove_in_support;
     List.iter DLL.insert to_remove_sibling;
     DLL.insert input
 

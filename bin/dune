@@ -1,4 +1,17 @@
 (executable
  (public_name main)
  (name main)
- (libraries Constraint_Solver_with_Backpropagation))
+ (libraries Constraint_Solver_with_Backpropagation)
+ (modules main))
+
+(executable
+ (public_name old)
+ (name old)
+ (libraries Constraint_Solver_with_Backpropagation)
+ (modules old))
+
+(executable
+ (public_name test_remove)
+ (name test_remove)
+ (libraries Constraint_Solver_with_Backpropagation)
+ (modules test_remove))

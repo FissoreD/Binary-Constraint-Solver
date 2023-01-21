@@ -44,28 +44,28 @@ let add_before current value =
   let value = make_node value current.dll_father in
   add_before_node current value
 
-let append e domain =
-  match !(domain.content) with
+let append e dll =
+  match !(dll.content) with
   | None ->
-      let node = make_node e domain in
-      domain.content := Some { first = node; last = node };
+      let node = make_node e dll in
+      dll.content := Some { first = node; last = node };
       if is_empty node.dll_father then invalid_arg "Why it is empty ?? c";
       node
   | Some { last; _ } -> add_after last e
 
-let append_node node domain =
-  match !domain with
+let append_node node dll =
+  match !dll with
   | None ->
-      domain := Some { first = node; last = node };
+      dll := Some { first = node; last = node };
       node
   | Some { last; _ } -> add_after_node last node
 
-let prepend e domain =
-  match !(domain.content) with
+let prepend e dll =
+  match !(dll.content) with
   | None ->
       if is_empty e.dll_father then invalid_arg "Why it is empty ?? d";
-      let node = make_node e domain in
-      domain.content := Some { first = node; last = node };
+      let node = make_node e dll in
+      dll.content := Some { first = node; last = node };
       node
   | Some { first; _ } -> add_before first e
 
@@ -86,6 +86,11 @@ let insert e =
       | Some prev, Some succ ->
           prev.next <- Some e;
           succ.prev <- Some e)
+
+let singleton name s =
+  let dom = empty name in
+  append s dom |> ignore;
+  dom
 
 let remove_after current =
   match current.next with
@@ -159,7 +164,6 @@ let not_exsist p (t : 'a t) = find p t = None
 let remove (node : 'a dll_node) =
   let dom1 = Option.get !(node.dll_father.content) in
   match (node.prev, node.next) with
-  (* TODO: do not remember to push to stack this operation *)
   | None, None -> node.dll_father.content := None
   | Some prev, None ->
       remove_after prev |> ignore;
@@ -169,23 +173,22 @@ let remove (node : 'a dll_node) =
       dom1.first <- succ
   | Some prev, _ -> remove_after prev |> ignore
 
-let remove_by_value (value : 'a) (domain : 'a t) =
-  match find (fun e -> e.value = value) domain with
+let remove_by_value (value : 'a) (dll : 'a t) =
+  match find (fun e -> e.value = value) dll with
   | None -> None
   | Some node ->
       remove node;
       Some node
 
-let remove_by_list_of_values l domain =
-  List.map ((Fun.flip remove_by_value) domain) l
+let remove_by_list_of_values l dll = List.map ((Fun.flip remove_by_value) dll) l
 
 (** Takes a ('a list) L and returns a dll containing the elements of L *)
 let of_list name l : 'a t =
-  let domain = empty name in
+  let dll = empty name in
   let rec aux = function
-    | [] -> domain
+    | [] -> dll
     | hd :: tl ->
-        append hd domain |> ignore;
+        append hd dll |> ignore;
         aux tl
   in
   aux l
