@@ -8,23 +8,30 @@ module DLL = DoublyLinkedList
 
 type 'a cell_type = 'a DLL.dll_node * 'a DLL.dll_node
 type 'a relation = 'a DLL.dll_node -> 'a DLL.dll_node -> bool
-type 'a table_type = 'a cell_type DLL.t
+
+type 'a table_type =
+  ( string * string * string * string,
+    'a DLL.dll_node * 'a DLL.dll_node )
+  Hashtbl.t
+
 type 'a domain = 'a DLL.t
 
-type 'a supports = {
+type 'a graph = {
   tbl : 'a table_type;
   relation : 'a relation;
+  (* A dict from a domain name to all domains depending on it *)
   constraint_binding : (string, 'a domain DLL.t) Hashtbl.t;
   domains : (string, 'a DLL.t) Hashtbl.t;
 }
 
-let find_relation tbl (a : 'a DLL.dll_node) (b : 'a DLL.dll_node) =
-  let has n1 n2 = a == n1 && b == n2 in
-  let find_fun (n1, n2) = has n1 n2 || has n2 n1 in
-  if DLL.is_empty tbl then false else DLL.exsist (fun a -> find_fun a.value) tbl
+let make_tuple (a : 'a DLL.dll_node) (b : 'a DLL.dll_node) =
+  (a.value, a.dll_father.name, b.value, b.dll_father.name)
 
-let build_constraint () : 'a supports =
-  let tbl = DLL.empty "constr" in
+let find_relation tbl (a : 'a DLL.dll_node) (b : 'a DLL.dll_node) =
+  Hashtbl.mem tbl (make_tuple a b) || Hashtbl.mem tbl (make_tuple b a)
+
+let build_constraint () : 'a graph =
+  let tbl = Hashtbl.create 1024 in
   {
     tbl;
     relation = find_relation tbl;
@@ -32,22 +39,19 @@ let build_constraint () : 'a supports =
     domains = Hashtbl.create 1024;
   }
 
-let add_constraint (support : 'a supports) d1 v1 d2 v2 =
+let add_constraint (support : 'a graph) d1 v1 d2 v2 =
+  let add_if_absent (d1 : 'a domain) (d2 : 'a domain) =
+    match Hashtbl.find_opt support.constraint_binding d1.name with
+    | None ->
+        Hashtbl.add support.constraint_binding d1.name (DLL.singleton "" d2);
+        Hashtbl.add support.domains d1.name d1
+    | Some e -> DLL.add_if_absent (fun e -> e.value == d2) d2 e |> ignore
+  in
   let get d v = Option.get (DLL.find_by_value v d) in
   let a, b = (get d1 v1, get d2 v2) in
-  DLL.append (a, b) support.tbl |> ignore;
-  (match Hashtbl.find_opt support.constraint_binding d1.name with
-  | None ->
-      Printf.printf "Adding %s to %s\n" d1.name d2.name;
-      Hashtbl.add support.constraint_binding d1.name (DLL.singleton "" d2);
-      Hashtbl.add support.domains d1.name d1
-  | Some e -> DLL.add_if_absent (fun e -> e.value == d2) d2 e |> ignore);
-  match Hashtbl.find_opt support.constraint_binding d2.name with
-  | None ->
-      Printf.printf "Adding %s to %s\n" d2.name d1.name;
-      Hashtbl.add support.constraint_binding d2.name (DLL.singleton "" d1);
-      Hashtbl.add support.domains d2.name d2
-  | Some e -> DLL.add_if_absent (fun e -> e.value == d1) d1 e |> ignore
+  Hashtbl.add support.tbl (make_tuple a b) (a, b);
+  add_if_absent d1 d2;
+  add_if_absent d2 d1
 
 let get_domain graph name =
   match Hashtbl.find_opt graph.domains name with

@@ -9,7 +9,7 @@ module AC_6 : Filtrage.Algo_Filtrage = struct
     is_supported : 'a DLL.dll_node DLL.dll_node DLL.t;
   }
 
-  type 'a compteurs = 'a Constraint.supports * (string, 'a cell_type) Hashtbl.t
+  type 'a compteurs = 'a Constraint.graph * (string, 'a cell_type) Hashtbl.t
   (** For each constraint and each value there is a linked list of supports *)
 
   type 'a stack_operation = {
@@ -39,19 +39,16 @@ module AC_6 : Filtrage.Algo_Filtrage = struct
         print_endline "]")
       x
 
-  let build_support (graph : 'a Constraint.supports) : 'a compteurs =
+  let build_support (graph : 'a Constraint.graph) : 'a compteurs =
     let compteurs : (string, 'a cell_type) Hashtbl.t = Hashtbl.create 1024 in
     let domain_list = Hashtbl.to_seq_values graph.domains |> List.of_seq in
     let empty_cell v =
       { value = v; is_supporting = DLL.empty ""; is_supported = DLL.empty "" }
     in
-    (* Add all values to the compteurs *)
-    Hashtbl.iter
-      (fun _ dom ->
-        DLL.iter
-          (fun v -> Hashtbl.add compteurs (make_name v) (empty_cell v))
-          dom)
-      graph.domains;
+    let add_compteur v = Hashtbl.add compteurs (make_name v) (empty_cell v) in
+    (* Add all values of every domains to the compteurs *)
+    Hashtbl.iter (fun _ dom -> DLL.iter add_compteur dom) graph.domains;
+
     let should_add v1 v2 =
       let rec aux (v : string DLL.dll_node) =
         if v == v1 then true
@@ -64,8 +61,7 @@ module AC_6 : Filtrage.Algo_Filtrage = struct
       in
       aux (DLL.get v1.dll_father.content).first
     in
-    let rec aux (l : 'a DLL.t list) =
-      match l with
+    let rec aux = function
       | [] -> ()
       | d1 :: tl ->
           DLL.iter

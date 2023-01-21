@@ -10,7 +10,7 @@ module AC_3 : Filtrage.Algo_Filtrage = struct
     input : 'a DLL.dll_node;
   }
 
-  type 'a compteurs = 'a Constraint.supports
+  type 'a compteurs = 'a Constraint.graph
 
   let print_compteurs = ignore
   let build_support = Fun.id

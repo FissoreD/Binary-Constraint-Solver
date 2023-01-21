@@ -8,7 +8,7 @@ module type Algo_Filtrage = sig
   type 'a remove_in_domain = string DLL.dll_node list
 
   val print_compteurs : string compteurs -> unit
-  val build_support : string Constraint.supports -> string compteurs
+  val build_support : string Constraint.graph -> string compteurs
   val revise : string DLL.dll_node -> string compteurs -> string stack_operation
   val back_track : string stack_operation -> unit
   val get_to_remove : string stack_operation -> string remove_in_domain

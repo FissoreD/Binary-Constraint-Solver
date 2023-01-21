@@ -30,22 +30,18 @@ module AC_4 : Filtrage.Algo_Filtrage = struct
         print_newline ())
       c
 
-  let build_support ({ tbl; _ } : 'a Constraint.supports) =
+  let build_support ({ tbl; _ } : 'a Constraint.graph) =
     let compteurs : 'a compteurs = DLL.empty "compteur" in
-    DLL.iter
-      (fun node ->
-        (* The support ab *)
-        let a, b = node.value in
-        let add_new_pair elt =
-          match DLL.find_assoc (( == ) elt) compteurs with
-          | None -> DLL.append (elt, DLL.empty "") compteurs
-          | Some e -> e
-        in
+    let add_new_pair elt =
+      match DLL.find_assoc (( == ) elt) compteurs with
+      | None -> DLL.append (elt, DLL.empty "") compteurs
+      | Some e -> e
+    in
+    Hashtbl.iter
+      (fun _ (a, b) ->
         let x, y = (add_new_pair a, add_new_pair b) in
         let last_x = DLL.append { value = b; assoc = None } (snd x.value) in
         let last_y = DLL.append { value = a; assoc = None } (snd y.value) in
-        if DLL.is_empty last_y.dll_father || DLL.is_empty last_x.dll_father then
-          invalid_arg "It is none";
         last_x.value.assoc <- Some last_y;
         last_y.value.assoc <- Some last_x)
       tbl;
@@ -61,7 +57,7 @@ module AC_4 : Filtrage.Algo_Filtrage = struct
     match DLL.find (fun e -> fst e.value == node_to_remove) compteurs with
     | None -> raise (Not_in_support "AC_4")
     | Some remove ->
-        let to_remove_in_domain : 'a DLL.dll_node list ref = ref [] in
+        let to_remove_in_domain = ref [] in
         let to_remove_sibling = ref [] in
         (* We remove the support since it exists *)
         DLL.remove remove;

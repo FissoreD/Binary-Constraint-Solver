@@ -3,10 +3,7 @@ module DLL = DoublyLinkedList
 
 let () = print_endline "Hello, World!"
 
-let () =
-  let module Filtr = Filtrage.Make (AC_6) in
-  let support = Parser.parse_file "graphs/input_2.txt" in
-
+let print_domain_stats (support : string Constraint.graph) =
   Printf.printf "There are %d domains\n" (Hashtbl.length support.domains);
   Hashtbl.iter
     (fun k (v : 'a DLL.t DLL.t) ->
@@ -16,20 +13,27 @@ let () =
          List.fold_left
            (fun acc (e : string DLL.t) -> Printf.sprintf "%s%s," acc e.name)
            "" l))
-    support.constraint_binding;
+    support.constraint_binding
 
+let () =
+  let module Filtr = Filtrage.Make (AC_6) in
   let print () =
     Filtr.print_domains ();
     Filtr.print_compteurs ()
   in
+
+  let support = Parser.parse_file "graphs/input_2.txt" in
+
+  print_domain_stats support;
+
   Filtr.build_support support;
   print ();
   Filtr.propagation ~verbose:true "e" (Hashtbl.find support.domains "d3")
   |> ignore;
+
   print_endline "-- After Remove --";
   print ();
 
   Filtr.back_track ();
   print_endline "-- After Backtrack --";
   print ()
-(* _ac_3 () *)
