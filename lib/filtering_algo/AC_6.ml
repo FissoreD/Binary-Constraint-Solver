@@ -60,6 +60,7 @@ module AC_6 : Filtrage.Algo_Filtrage = struct
       in
       aux (DLL.get v1.dll_father.content).first
     in
+
     let rec aux = function
       | [] -> ()
       | d1 :: tl ->
@@ -79,15 +80,14 @@ module AC_6 : Filtrage.Algo_Filtrage = struct
                           let x = DLL.append v2 dom1.is_supporting in
                           DLL.append x dom2.is_supported |> ignore))
                     d2)
-                tl;
-              aux tl)
-            d1
+                tl)
+            d1;
+          aux tl
     in
     aux domain_list;
     (graph, compteurs)
 
-  (** 
-  For each value v in d1 it should exist a support in d2, otherwise we remove v from d1,
+  (** For each value v in d1 it should exist a support in d2, otherwise we remove v from d1,
   returns the list of filtered values.
   If the list is empty, then no modification has been performed on d *)
   let revise (node_to_remove : 'a DLL.dll_node)

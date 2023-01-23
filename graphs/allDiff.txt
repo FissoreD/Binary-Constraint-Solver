@@ -1,0 +1,18 @@
+d1 : A B 
+d2 : 1 2 3 
+d3 : a b 
+--
+d2 1 d1 B 
+d2 1 d3 b 
+
+d2 2 d1 A 
+d2 2 d3 a
+
+d2 3 d1 B
+d2 3 d3 b
+
+d2 3 d1 A
+d2 3 d3 a
+
+d1 A d3 b
+d1 B d3 a

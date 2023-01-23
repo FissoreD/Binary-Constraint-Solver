@@ -32,9 +32,10 @@ let () =
 
   let m : (module Filtrage.Algo_Filtrage) =
     match !algo with
+    | 3 -> (module AC_3)
     | 4 -> (module AC_4)
     | 6 -> (module AC_6)
-    | _ -> (module AC_3)
+    | _ -> invalid_arg "No valid -ac option"
   in
 
   let module M = (val m : Filtrage.Algo_Filtrage) in

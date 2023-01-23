@@ -15,8 +15,7 @@ module AC_3 : Filtrage.Algo_Filtrage = struct
   let print_compteurs = ignore
   let build_support = Fun.id
 
-  (** 
-  For each value v in d1 it should exist a support in d2, otherwise we remove v from d1,
+  (** For each value v in d1 it should exist a support in d2, otherwise we remove v from d1,
   returns the list of filtered values.
   If the list is empty, then no modification has been performed on d1 *)
   let revise (d1 : 'a DLL.dll_node) (support : 'a compteurs) =

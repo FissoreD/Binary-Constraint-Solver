@@ -42,6 +42,8 @@ module Make (AF : Algo_Filtrage) : M = struct
   let stack_op : 'a AF.stack_operation Stack.t = Stack.create ()
   let stack_remove_numb_nb : int Stack.t = Stack.create ()
   let stack_select_numb_nb : int Stack.t = Stack.create ()
+  let counter_remove_prov = ref 0
+  let counter_select_prov = ref 0
   let add_stack = (Fun.flip Stack.push) stack_op
   let get_op () = Stack.pop stack_op
 
@@ -54,7 +56,7 @@ module Make (AF : Algo_Filtrage) : M = struct
     let to_str (e : 'a DLL.dll_node) =
       Printf.sprintf "(%s,%s)" e.dll_father.name e.value
     in
-    let append a b = Printf.sprintf "%s, %s" (to_str b) a in
+    let append a b = Printf.sprintf "%s, %s" a (to_str b) in
     let rec aux = function
       | [] -> ""
       | [ hd ] -> to_str hd
@@ -88,7 +90,7 @@ module Make (AF : Algo_Filtrage) : M = struct
 
   let remove_by_node ?(verbose = false) (node : 'a DLL.dll_node) =
     if verbose then
-      Printf.printf "Removing %s from %s\n" node.value node.dll_father.name;
+      Printf.printf " * Removing %s from %s\n" node.value node.dll_father.name;
     DLL.remove node;
     let domain = node.dll_father in
     if DLL.is_empty domain then raise Empty_domain;
@@ -110,15 +112,15 @@ module Make (AF : Algo_Filtrage) : M = struct
     | Some value_in_domain -> remove_by_node ~verbose value_in_domain
 
   let propagation_remove_by_node ?(verbose = false) node =
-    let cnt = ref 0 in
+    counter_remove_prov := 0;
     let rec aux (to_remove : string DLL.dll_node) =
-      incr cnt;
       remove_by_node ~verbose to_remove;
+      incr counter_remove_prov;
       let last_push = AF.get_to_remove (Stack.top stack_op) in
       List.iter aux last_push
     in
     aux node;
-    Stack.push !cnt stack_remove_numb_nb
+    Stack.push !counter_remove_prov stack_remove_numb_nb
 
   let propagation_remove_by_value ?(verbose = false) value domain_name =
     let domain = Hashtbl.find (get_graph ()).domains domain_name in
@@ -130,15 +132,16 @@ module Make (AF : Algo_Filtrage) : M = struct
 
   let propagation_select_by_node ?(verbose = false) (v : 'a DLL.dll_node) =
     if verbose then
-      Printf.printf "--> Selecting %s from %s\n" v.value v.dll_father.name;
-    let cnt = ref 0 in
+      MyPrint.print_color_str "gray"
+        (Printf.sprintf "--> Selecting %s from %s" v.value v.dll_father.name);
+    counter_select_prov := 0;
     DLL.iter
       (fun (v' : 'a DLL.dll_node) ->
         if v' != v then (
-          incr cnt;
-          propagation_remove_by_node ~verbose v'))
+          propagation_remove_by_node ~verbose v';
+          incr counter_select_prov))
       v.dll_father;
-    Stack.push !cnt stack_select_numb_nb;
+    Stack.push !counter_select_prov stack_select_numb_nb;
     if verbose then print_endline "<-- End selecting"
 
   let propagation_select_by_value ?(verbose = false) value domain_name =
@@ -156,29 +159,46 @@ module Make (AF : Algo_Filtrage) : M = struct
 
   let back_track_select () =
     for _ = Stack.pop stack_select_numb_nb downto 1 do
-      for _ = Stack.pop stack_remove_numb_nb downto 1 do
-        AF.back_track (get_op ())
-      done
+      back_track_remove ()
     done
 
   let find_solution ?(verbose = false) () =
+    print_compteurs ();
     let domains = Hashtbl.to_seq_values (get_graph ()).domains |> List.of_seq in
     let number_of_fails = ref 0 in
+    let number_of_solutions = ref 0 in
     let rec aux sol : string DLL.t list -> unit = function
       | [] ->
+          incr number_of_solutions;
           MyPrint.print_color_str "blue"
             ("A solution : " ^ to_str_node_list sol ^ " !!")
       | hd :: tl ->
           DLL.iter
             (fun v ->
+              (* MyPrint.print_color_str "blue" v.value; *)
               try
                 propagation_select_by_node ~verbose v;
                 aux (v :: sol) tl;
-                back_track_select ()
-              with Empty_domain -> incr number_of_fails)
+                back_track_select () (* print_domains () *)
+              with Empty_domain ->
+                for _ = !counter_select_prov downto 1 do
+                  back_track_remove ()
+                done;
+                for _ = !counter_remove_prov downto 1 do
+                  AF.back_track (get_op ())
+                done;
+                Printf.printf "%d %d\n" !counter_remove_prov
+                  !counter_select_prov;
+                (* assert (Stack.is_empty stack_remove_numb_nb);
+                   assert (Stack.is_empty stack_select_numb_nb); *)
+                incr number_of_fails;
+                MyPrint.print_color_str "red"
+                  ("A fail : " ^ to_str_node_list (v :: sol) ^ " ..."))
             hd
     in
     aux [] domains;
     MyPrint.print_color_str "red"
-      (Printf.sprintf "The number of fails is %d" !number_of_fails)
+      (Printf.sprintf "The number of fails is %d" !number_of_fails);
+    MyPrint.print_color_str "green"
+      (Printf.sprintf "The number of solutions is %d" !number_of_solutions)
 end

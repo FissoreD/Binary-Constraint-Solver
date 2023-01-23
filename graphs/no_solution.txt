@@ -1,0 +1,10 @@
+d1 : a b
+d2 : 1 2
+d3 : e f
+--
+d1 a d2 1
+d2 1 d3 e 
+d3 e d1 b 
+d1 b d2 2 
+d2 2 d3 f 
+d3 f d1 a

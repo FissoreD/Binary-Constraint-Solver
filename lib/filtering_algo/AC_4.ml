@@ -22,19 +22,23 @@ module AC_4 : Filtrage.Algo_Filtrage = struct
   }
 
   let print_compteurs (c : 'a compteurs) =
+    print_endline "---------------------";
     DLL.iter_value
       (fun ((a, b) : 'a cell_type) ->
         Printf.printf "%s is supported by " a.value;
         DLL.iter_value (fun e -> Printf.printf "%s " e.value.value) b;
         print_newline ())
-      c
+      c;
+    print_endline "---------------------"
 
-  let build_support ({ tbl; _ } : 'a Constraint.graph) =
+  let build_support (g : 'a Constraint.graph) =
     let compteurs : 'a compteurs = DLL.empty "compteur" in
+    Hashtbl.iter
+      (fun _ (d : 'a DoublyLinkedList.t) ->
+        DLL.iter (fun v -> DLL.append (v, DLL.empty "") compteurs |> ignore) d)
+      g.domains;
     let add_new_pair elt =
-      match DLL.find_assoc (( == ) elt) compteurs with
-      | None -> DLL.append (elt, DLL.empty "") compteurs
-      | Some e -> e
+      DLL.find_assoc (( == ) elt) compteurs |> Option.get
     in
     Hashtbl.iter
       (fun _ (a, b) ->
@@ -43,18 +47,19 @@ module AC_4 : Filtrage.Algo_Filtrage = struct
         let last_y = DLL.append { value = a; assoc = None } (snd y.value) in
         last_x.value.assoc <- Some last_y;
         last_y.value.assoc <- Some last_x)
-      tbl;
+      g.tbl;
     compteurs
 
-  (** 
-  For each value v in d1 it should exist a support in d2, otherwise we remove v from d1,
+  (** For each value v in d1 it should exist a support in d2, otherwise we remove v from d1,
   returns the list of filtered values.
-  If the list is empty, then no modification has been performed on d1
-*)
+  If the list is empty, then no modification has been performed on d1 *)
   let revise (node_to_remove : 'a DLL.dll_node) (compteurs : 'a compteurs) =
     (* Look for the support to remove in compteurs *)
     match DLL.find (fun e -> fst e.value == node_to_remove) compteurs with
-    | None -> raise (Not_in_support "AC_4")
+    | None ->
+        print_endline node_to_remove.value;
+        print_compteurs compteurs;
+        raise (Not_in_support "AC_4")
     | Some remove ->
         let to_remove_in_domain = ref [] in
         let to_remove_sibling = ref [] in
