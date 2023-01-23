@@ -28,6 +28,7 @@ let parse_file file_name =
        (* print_endline line; *)
        match line with
        | [] | "#" :: _ -> ()
+       | h :: _ when String.starts_with ~prefix:"#" h -> ()
        | "--" :: _ -> incr stage
        | l when !stage = 0 -> add_domain l
        | l -> add_constraint l

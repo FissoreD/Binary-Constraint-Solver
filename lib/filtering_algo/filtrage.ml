@@ -27,7 +27,7 @@ module type M = sig
   val propagation_select_by_value : ?verbose:bool -> string -> string -> unit
   val back_track_remove : unit -> unit
   val back_track_select : unit -> unit
-  val find_solution : ?verbose:bool -> unit -> unit
+  val find_solution : ?verbose:bool -> ?one_sol:bool -> unit -> unit
 end
 
 module Make (AF : Algo_Filtrage) : M = struct
@@ -162,8 +162,7 @@ module Make (AF : Algo_Filtrage) : M = struct
       back_track_remove ()
     done
 
-  let find_solution ?(verbose = false) () =
-    print_compteurs ();
+  let find_solution ?(verbose = false) ?(one_sol = false) () =
     let domains = Hashtbl.to_seq_values (get_graph ()).domains |> List.of_seq in
     let number_of_fails = ref 0 in
     let number_of_solutions = ref 0 in
@@ -171,15 +170,15 @@ module Make (AF : Algo_Filtrage) : M = struct
       | [] ->
           incr number_of_solutions;
           MyPrint.print_color_str "blue"
-            ("A solution : " ^ to_str_node_list sol ^ " !!")
+            ("A solution : " ^ to_str_node_list sol ^ " !!");
+          if one_sol then raise Not_found
       | hd :: tl ->
           DLL.iter
             (fun v ->
-              (* MyPrint.print_color_str "blue" v.value; *)
               try
                 propagation_select_by_node ~verbose v;
                 aux (v :: sol) tl;
-                back_track_select () (* print_domains () *)
+                back_track_select ()
               with Empty_domain ->
                 for _ = !counter_select_prov downto 1 do
                   back_track_remove ()
@@ -187,18 +186,16 @@ module Make (AF : Algo_Filtrage) : M = struct
                 for _ = !counter_remove_prov downto 1 do
                   AF.back_track (get_op ())
                 done;
-                Printf.printf "%d %d\n" !counter_remove_prov
-                  !counter_select_prov;
-                (* assert (Stack.is_empty stack_remove_numb_nb);
-                   assert (Stack.is_empty stack_select_numb_nb); *)
                 incr number_of_fails;
                 MyPrint.print_color_str "red"
                   ("A fail : " ^ to_str_node_list (v :: sol) ^ " ..."))
             hd
     in
-    aux [] domains;
+    (try aux [] domains with Not_found -> ());
+    print_endline "------------------------------";
     MyPrint.print_color_str "red"
       (Printf.sprintf "The number of fails is %d" !number_of_fails);
     MyPrint.print_color_str "green"
-      (Printf.sprintf "The number of solutions is %d" !number_of_solutions)
+      (Printf.sprintf "The number of solutions is %d" !number_of_solutions);
+    print_endline "------------------------------"
 end

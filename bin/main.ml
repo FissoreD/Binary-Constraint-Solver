@@ -16,6 +16,7 @@ let () =
   let algo = ref 3 in
   let verbose = ref false in
   let path = ref "graphs/input_2.txt" in
+  let one_sol = ref false in
   let speclist =
     align
       [
@@ -24,6 +25,7 @@ let () =
           " Set the filtering algo among 3, 4, 6, 2001 - default : 3" );
         ("-v", Set verbose, " Set the verbose mode");
         ("-f", Set_string path, " Set the input file");
+        ("-first", Set one_sol, " Finds only the first solution if it exists");
       ]
   in
 
@@ -50,4 +52,4 @@ let () =
   Filtr.build_support support;
   Filtr.print_domains ();
   (* select (module Filtr) !verbose *)
-  Filtr.find_solution ~verbose:!verbose ()
+  Filtr.find_solution ~verbose:!verbose ~one_sol:!one_sol ()
