@@ -25,14 +25,14 @@ let build_constraint () =
   (d1, d2, support)
 
 let _ac_3 () =
-  let _d1, d2, support = build_constraint () in
+  let _d1, d2, graph = build_constraint () in
 
-  let supp = AC_3.build_support support in
-  AC_3.print_compteurs supp;
+  let supp = AC_3.initialization graph in
+  AC_3.print_data_struct supp;
 
   let filtered = AC_3.revise (DLL.remove_by_value "4" d2 |> Option.get) supp in
 
-  Constraint.print_string_domains support;
+  Constraint.print_string_domains graph;
 
   print_string "removed = ";
   print_list_nodes (AC_3.get_to_remove filtered);
@@ -40,14 +40,14 @@ let _ac_3 () =
   print_endline "Backtrack:";
   AC_3.back_track filtered;
 
-  Constraint.print_string_domains support;
+  Constraint.print_string_domains graph;
   print_endline ""
 
 let _ac_4 () =
   let d1, d2, support = build_constraint () in
 
-  let supp = AC_4.build_support support in
-  AC_4.print_compteurs supp;
+  let supp = AC_4.initialization support in
+  AC_4.print_data_struct supp;
 
   let stack = Queue.create () in
 
@@ -73,7 +73,7 @@ let _ac_4 () =
       Queue.push removed_list stack)
     [];
 
-  AC_4.print_compteurs supp;
+  AC_4.print_data_struct supp;
 
   print_endline "";
   Constraint.print_string_domains support;
@@ -84,7 +84,7 @@ let _ac_4 () =
 
   print_endline "After roll back";
 
-  AC_4.print_compteurs supp;
+  AC_4.print_data_struct supp;
 
   print_endline "";
   Constraint.print_string_domains support
@@ -94,8 +94,8 @@ let _ac_6 () =
 
   Printf.printf "** length : %d\n" (Hashtbl.length support.domains);
 
-  let supp = AC_6.build_support support in
-  AC_6.print_compteurs supp;
+  let supp = AC_6.initialization support in
+  AC_6.print_data_struct supp;
 
   (* invalid_arg "STOP" |> ignore; *)
   List.iter
@@ -118,7 +118,7 @@ let _ac_6 () =
       List.iter DLL.remove (AC_6.get_to_remove removed_list))
     [ "2" ];
 
-  AC_6.print_compteurs supp;
+  AC_6.print_data_struct supp;
 
   print_endline "";
   Constraint.print_string_domains support

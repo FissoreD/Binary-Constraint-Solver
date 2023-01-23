@@ -166,21 +166,29 @@ module Make (AF : Arc_Consistency) : M = struct
     done
 
   let find_solution ?(verbose = false) ?(one_sol = false) () =
+    let exception Stop_One_Sol in
     let domains = Hashtbl.to_seq_values (get_graph ()).domains |> List.of_seq in
     let number_of_fails = ref 0 in
     let number_of_solutions = ref 0 in
+    let print_fail sol =
+      MyPrint.print_color_str "red" ("A fail : " ^ to_str_node_list sol ^ " ...")
+    in
+    let print_sol sol =
+      MyPrint.print_color_str "blue"
+        ("A solution : " ^ to_str_node_list sol ^ " !!")
+    in
     let rec aux sol : string DLL.t list -> unit = function
       | [] ->
           incr number_of_solutions;
-          MyPrint.print_color_str "blue"
-            ("A solution : " ^ to_str_node_list sol ^ " !!");
-          if one_sol then raise Not_found
+          print_sol sol;
+          if one_sol then raise Stop_One_Sol
       | hd :: tl ->
           DLL.iter
             (fun v ->
+              let sol = v :: sol in
               try
                 propagation_select_by_node ~verbose v;
-                aux (v :: sol) tl;
+                aux sol tl;
                 back_track_select ()
               with Empty_domain ->
                 for _ = !counter_select_prov downto 1 do
@@ -190,11 +198,10 @@ module Make (AF : Arc_Consistency) : M = struct
                   AF.back_track (get_op ())
                 done;
                 incr number_of_fails;
-                MyPrint.print_color_str "red"
-                  ("A fail : " ^ to_str_node_list (v :: sol) ^ " ..."))
+                print_fail sol)
             hd
     in
-    (try aux [] domains with Not_found -> ());
+    (try aux [] domains with Stop_One_Sol -> ());
     print_endline "------------------------------";
     MyPrint.print_color_str "red"
       (Printf.sprintf "The number of fails is %d" !number_of_fails);

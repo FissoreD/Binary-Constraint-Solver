@@ -115,8 +115,18 @@ let iter_gen is_rev f d =
     in
     aux (if is_rev then e.last else e.first)
 
+let map f d =
+  if is_empty d then []
+  else
+    let e = Option.get !(d.content) in
+    let rec aux current =
+      f current :: (match current.next with None -> [] | Some e -> aux e)
+    in
+    aux e.first
+
 let iter f d = iter_gen false f d
 let iter_value f d = iter_gen false (fun e -> f e.value) d
+let map_value f d = map (fun e -> f e.value) d
 let iter_rev f d = iter_gen true f d
 
 let rec find_from p (t : 'a dll_node) =

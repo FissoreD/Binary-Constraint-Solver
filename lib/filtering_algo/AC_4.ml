@@ -53,18 +53,18 @@ module AC_4 : Filtrage.Arc_Consistency = struct
   (** For each value v in d1 it should exist a support in d2, otherwise we remove v from d1,
   returns the list of filtered values.
   If the list is empty, then no modification has been performed on d1 *)
-  let revise (node_to_remove : 'a DLL.dll_node) (data_struct : 'a data_struct) =
+  let revise (input : 'a DLL.dll_node) (data_struct : 'a data_struct) =
     (* Look for the support to remove in data_struct *)
-    match DLL.find (fun e -> fst e.value == node_to_remove) data_struct with
+    match DLL.find (fun e -> fst e.value == input) data_struct with
     | None ->
-        print_endline node_to_remove.value;
+        print_endline input.value;
         print_data_struct data_struct;
         raise (Not_in_support "AC_4")
-    | Some remove ->
+    | Some to_remove_in_support ->
         let to_remove_in_domain = ref [] in
         let to_remove_sibling = ref [] in
         (* We remove the support since it exists *)
-        DLL.remove remove;
+        DLL.remove to_remove_in_support;
         DLL.iter_value
           (fun (current : 'a double_connection) ->
             let sibling = Option.get current.assoc in
@@ -74,15 +74,15 @@ module AC_4 : Filtrage.Arc_Consistency = struct
             if
               (* Here we remove the value from the other domain since the value has no more support *)
               DLL.not_exsist
-                (fun e -> e.value.value.dll_father == node_to_remove.dll_father)
+                (fun e -> e.value.value.dll_father == input.dll_father)
                 sibling.dll_father
             then to_remove_in_domain := current.value :: !to_remove_in_domain)
-          (snd remove.value);
+          (snd to_remove_in_support.value);
         {
           to_remove_in_domain = !to_remove_in_domain;
-          to_remove_in_support = remove;
+          to_remove_in_support;
           to_remove_sibling = !to_remove_sibling;
-          input = node_to_remove;
+          input;
         }
 
   let back_track
