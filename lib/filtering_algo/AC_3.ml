@@ -1,4 +1,4 @@
-module AC_3 : Filtrage.Algo_Filtrage = struct
+module AC_3 : Filtrage.Arc_Consistency = struct
   exception Not_in_support of string
 
   module DLL = DoublyLinkedList
@@ -10,15 +10,15 @@ module AC_3 : Filtrage.Algo_Filtrage = struct
     input : 'a DLL.dll_node;
   }
 
-  type 'a compteurs = 'a Constraint.graph
+  type 'a data_struct = 'a Constraint.graph
 
-  let print_compteurs = ignore
-  let build_support = Fun.id
+  let print_data_struct = ignore
+  let initialization = Fun.id
 
   (** For each value v in d1 it should exist a support in d2, otherwise we remove v from d1,
   returns the list of filtered values.
   If the list is empty, then no modification has been performed on d1 *)
-  let revise (d1 : 'a DLL.dll_node) (support : 'a compteurs) =
+  let revise (d1 : 'a DLL.dll_node) (support : 'a data_struct) =
     match !(d1.dll_father.content) with
     | None -> raise (Not_in_support "AC_3")
     | Some _ ->

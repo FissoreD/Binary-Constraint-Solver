@@ -32,7 +32,7 @@ let () =
   Arg.parse speclist print_endline
     "A constraint solver using AC-[3,5,6,2001] filtering algos";
 
-  let m : (module Filtrage.Algo_Filtrage) =
+  let m : (module Filtrage.Arc_Consistency) =
     match !algo with
     | 3 -> (module AC_3)
     | 4 -> (module AC_4)
@@ -40,16 +40,16 @@ let () =
     | _ -> invalid_arg "No valid -ac option"
   in
 
-  let module M = (val m : Filtrage.Algo_Filtrage) in
+  let module M = (val m : Filtrage.Arc_Consistency) in
   let module Filtr = Filtrage.Make (M) in
   let _print () =
     Filtr.print_domains ();
-    Filtr.print_compteurs ()
+    Filtr.print_data_struct ()
   in
 
-  let support = Parser.parse_file !path in
+  let graph = Parser.parse_file !path in
 
-  Filtr.build_support support;
+  Filtr.initialization graph;
   Filtr.print_domains ();
   (* select (module Filtr) !verbose *)
   Filtr.find_solution ~verbose:!verbose ~one_sol:!one_sol ()

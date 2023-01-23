@@ -1,15 +1,18 @@
-module type Algo_Filtrage = sig
+module type Arc_Consistency = sig
   exception Not_in_support of string
 
   module DLL = DoublyLinkedList
 
-  type 'a compteurs
+  type 'a data_struct
   type 'a stack_operation
   type 'a remove_in_domain = string DLL.dll_node list
 
-  val print_compteurs : string compteurs -> unit
-  val build_support : string Constraint.graph -> string compteurs
-  val revise : string DLL.dll_node -> string compteurs -> string stack_operation
+  val print_data_struct : string data_struct -> unit
+  val initialization : string Constraint.graph -> string data_struct
+
+  val revise :
+    string DLL.dll_node -> string data_struct -> string stack_operation
+
   val back_track : string stack_operation -> unit
   val get_to_remove : string stack_operation -> string remove_in_domain
 end
@@ -17,9 +20,9 @@ end
 module type M = sig
   module DLL = DoublyLinkedList
 
-  val build_support : ?verbose:bool -> string Constraint.graph -> unit
+  val initialization : ?verbose:bool -> string Constraint.graph -> unit
+  val print_data_struct : unit -> unit
   val print_list_nodes : string DLL.dll_node list -> unit
-  val print_compteurs : unit -> unit
   val print_domains : ?is_rev:bool -> unit -> unit
   val print_domain_stats : unit -> unit
   val remove_by_value : ?verbose:bool -> string -> string -> unit
@@ -30,7 +33,7 @@ module type M = sig
   val find_solution : ?verbose:bool -> ?one_sol:bool -> unit -> unit
 end
 
-module Make (AF : Algo_Filtrage) : M = struct
+module Make (AF : Arc_Consistency) : M = struct
   module DLL = DoublyLinkedList
 
   exception Empty_domain
@@ -40,17 +43,17 @@ module Make (AF : Algo_Filtrage) : M = struct
   let get_support () = Option.get !support
   let get_graph () = Option.get !graph
   let stack_op : 'a AF.stack_operation Stack.t = Stack.create ()
-  let stack_remove_numb_nb : int Stack.t = Stack.create ()
-  let stack_select_numb_nb : int Stack.t = Stack.create ()
+  let stack_remove_nb : int Stack.t = Stack.create ()
+  let stack_select_nb : int Stack.t = Stack.create ()
   let counter_remove_prov = ref 0
   let counter_select_prov = ref 0
   let add_stack = (Fun.flip Stack.push) stack_op
   let get_op () = Stack.pop stack_op
 
-  let build_support ?(verbose = false) graph' =
-    support := Some (AF.build_support graph');
+  let initialization ?(verbose = false) graph' =
+    support := Some (AF.initialization graph');
     graph := Some graph';
-    if verbose then AF.print_compteurs (get_support ())
+    if verbose then AF.print_data_struct (get_support ())
 
   let to_str_node_list l =
     let to_str (e : 'a DLL.dll_node) =
@@ -66,10 +69,10 @@ module Make (AF : Algo_Filtrage) : M = struct
 
   let print_list_nodes l = print_endline (to_str_node_list l)
 
-  let print_compteurs () =
-    print_endline "-- Start Compteurs --";
-    AF.print_compteurs (get_support ());
-    print_endline "--- End Compteurs ---"
+  let print_data_struct () =
+    print_endline "-- Start data_struct --";
+    AF.print_data_struct (get_support ());
+    print_endline "--- End data_struct ---"
 
   let print_domains ?(is_rev = false) () =
     Constraint.print_string_domains ~is_rev (get_graph ())
@@ -120,7 +123,7 @@ module Make (AF : Algo_Filtrage) : M = struct
       List.iter aux last_push
     in
     aux node;
-    Stack.push !counter_remove_prov stack_remove_numb_nb
+    Stack.push !counter_remove_prov stack_remove_nb
 
   let propagation_remove_by_value ?(verbose = false) value domain_name =
     let domain = Hashtbl.find (get_graph ()).domains domain_name in
@@ -141,7 +144,7 @@ module Make (AF : Algo_Filtrage) : M = struct
           propagation_remove_by_node ~verbose v';
           incr counter_select_prov))
       v.dll_father;
-    Stack.push !counter_select_prov stack_select_numb_nb;
+    Stack.push !counter_select_prov stack_select_nb;
     if verbose then print_endline "<-- End selecting"
 
   let propagation_select_by_value ?(verbose = false) value domain_name =
@@ -153,12 +156,12 @@ module Make (AF : Algo_Filtrage) : M = struct
     | Some node -> propagation_select_by_node ~verbose node
 
   let back_track_remove () =
-    for _ = Stack.pop stack_remove_numb_nb downto 1 do
+    for _ = Stack.pop stack_remove_nb downto 1 do
       AF.back_track (get_op ())
     done
 
   let back_track_select () =
-    for _ = Stack.pop stack_select_numb_nb downto 1 do
+    for _ = Stack.pop stack_select_nb downto 1 do
       back_track_remove ()
     done
 

@@ -1,4 +1,4 @@
-module AC_4 : Filtrage.Algo_Filtrage = struct
+module AC_4 : Filtrage.Arc_Consistency = struct
   exception Not_in_support of string
 
   module DLL = DoublyLinkedList
@@ -11,7 +11,7 @@ module AC_4 : Filtrage.Algo_Filtrage = struct
   type 'a remove_in_domain = string DLL.dll_node list
   type 'a cell_type = 'a DLL.dll_node * 'a double_connection DLL.t
 
-  type 'a compteurs = 'a cell_type DLL.t
+  type 'a data_struct = 'a cell_type DLL.t
   (** For each constraint and each value there is a linked list of supports  *)
 
   type 'a stack_operation = {
@@ -21,7 +21,7 @@ module AC_4 : Filtrage.Algo_Filtrage = struct
     input : 'a DLL.dll_node;
   }
 
-  let print_compteurs (c : 'a compteurs) =
+  let print_data_struct (c : 'a data_struct) =
     print_endline "---------------------";
     DLL.iter_value
       (fun ((a, b) : 'a cell_type) ->
@@ -31,14 +31,14 @@ module AC_4 : Filtrage.Algo_Filtrage = struct
       c;
     print_endline "---------------------"
 
-  let build_support (g : 'a Constraint.graph) =
-    let compteurs : 'a compteurs = DLL.empty "compteur" in
+  let initialization (g : 'a Constraint.graph) =
+    let data_struct : 'a data_struct = DLL.empty "compteur" in
     Hashtbl.iter
       (fun _ (d : 'a DoublyLinkedList.t) ->
-        DLL.iter (fun v -> DLL.append (v, DLL.empty "") compteurs |> ignore) d)
+        DLL.iter (fun v -> DLL.append (v, DLL.empty "") data_struct |> ignore) d)
       g.domains;
     let add_new_pair elt =
-      DLL.find_assoc (( == ) elt) compteurs |> Option.get
+      DLL.find_assoc (( == ) elt) data_struct |> Option.get
     in
     Hashtbl.iter
       (fun _ (a, b) ->
@@ -48,17 +48,17 @@ module AC_4 : Filtrage.Algo_Filtrage = struct
         last_x.value.assoc <- Some last_y;
         last_y.value.assoc <- Some last_x)
       g.tbl;
-    compteurs
+    data_struct
 
   (** For each value v in d1 it should exist a support in d2, otherwise we remove v from d1,
   returns the list of filtered values.
   If the list is empty, then no modification has been performed on d1 *)
-  let revise (node_to_remove : 'a DLL.dll_node) (compteurs : 'a compteurs) =
-    (* Look for the support to remove in compteurs *)
-    match DLL.find (fun e -> fst e.value == node_to_remove) compteurs with
+  let revise (node_to_remove : 'a DLL.dll_node) (data_struct : 'a data_struct) =
+    (* Look for the support to remove in data_struct *)
+    match DLL.find (fun e -> fst e.value == node_to_remove) data_struct with
     | None ->
         print_endline node_to_remove.value;
-        print_compteurs compteurs;
+        print_data_struct data_struct;
         raise (Not_in_support "AC_4")
     | Some remove ->
         let to_remove_in_domain = ref [] in

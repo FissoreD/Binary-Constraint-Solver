@@ -1,96 +1,150 @@
-module AC_2001 : Filtrage.Algo_Filtrage = struct
+module AC_2001 : Filtrage.Arc_Consistency = struct
   exception Not_in_support of string
 
   module DLL = DoublyLinkedList
 
-  type 'a double_connection = {
+  type 'a cell_type = {
     value : 'a DLL.dll_node;
-    mutable assoc : 'a double_connection DLL.dll_node option;
+    is_supporting : 'a DLL.dll_node DLL.t;
+    is_supported : 'a DLL.dll_node DLL.dll_node DLL.t;
+  }
+
+  type 'a data_struct = 'a Constraint.graph * (string, 'a cell_type) Hashtbl.t
+  (** the data structure is the S-list *)
+
+  type 'a stack_operation = {
+    removed_in_domain : 'a DLL.dll_node list;
+    removed_in_support : 'a cell_type;
+    removed_from_is_supported : 'a DLL.dll_node DLL.dll_node list;
+    appended_in_support : 'a DLL.dll_node DLL.dll_node list;
+    input : 'a DLL.dll_node;
+    data_struct : 'a data_struct;
   }
 
   type 'a remove_in_domain = string DLL.dll_node list
-  type 'a cell_type = 'a DLL.dll_node * 'a double_connection DLL.t
 
-  type 'a compteurs = 'a cell_type DLL.t
-  (** For each constraint and each value there is a linked list of supports  *)
+  let get_to_remove { removed_in_domain; _ } = removed_in_domain
 
-  type 'a stack_operation = {
-    to_remove_in_domain : 'a remove_in_domain;
-    to_remove_in_support : 'a cell_type DLL.dll_node;
-    to_remove_sibling : 'a double_connection DLL.dll_node list;
-    input : 'a DLL.dll_node;
-  }
+  let make_name (node : 'a DLL.dll_node) =
+    Printf.sprintf "%s,%s" node.dll_father.name node.value
 
-  let print_compteurs (c : 'a compteurs) =
-    DLL.iter
-      (fun ({ value; _ } : 'a cell_type DLL.dll_node) ->
-        let a, b = value in
-        Printf.printf "%s is supported by " a.value;
-        DLL.iter (fun e -> Printf.printf "%s " e.value.value.value) b;
-        print_newline ())
-      c
-
-  let build_support ({ tbl; _ } : 'a Constraint.graph) =
-    let compteurs : 'a compteurs = DLL.empty "compteur" in
+  let print_data_struct ((_, x) : 'a data_struct) : unit =
     Hashtbl.iter
-      (fun _ (a, b) ->
-        (* The support ab *)
-        let add_new_pair elt =
-          match DLL.find_assoc (( == ) elt) compteurs with
-          | None -> DLL.append (elt, DLL.empty "") compteurs
-          | Some e -> e
-        in
-        let x, y = (add_new_pair a, add_new_pair b) in
-        let last_x = DLL.append { value = b; assoc = None } (snd x.value) in
-        let last_y = DLL.append { value = a; assoc = None } (snd y.value) in
-        last_x.value.assoc <- Some last_y;
-        last_y.value.assoc <- Some last_x)
-      tbl;
-    compteurs
+      (fun _ (e : 'a cell_type) ->
+        Printf.printf "%s supports [ " e.value.value;
+        DLL.iter_value
+          (fun (e : 'a DLL.dll_node) -> Printf.printf "%s " e.value)
+          e.is_supporting;
+        print_endline "]")
+      x
 
-  (** 
-  For each value v in d1 it should exist a support in d2, otherwise we remove v from d1,
+  let initialization (graph : 'a Constraint.graph) : 'a data_struct =
+    let data_struct : (string, 'a cell_type) Hashtbl.t = Hashtbl.create 1024 in
+    let domain_list = Hashtbl.to_seq_values graph.domains |> List.of_seq in
+    let empty_cell v =
+      { value = v; is_supporting = DLL.empty ""; is_supported = DLL.empty "" }
+    in
+    let add_compteur v = Hashtbl.add data_struct (make_name v) (empty_cell v) in
+    (* Add all values of every domains to the data_struct *)
+    Hashtbl.iter (fun _ dom -> DLL.iter add_compteur dom) graph.domains;
+
+    let should_add v1 v2 =
+      let rec aux (v : string DLL.dll_node) =
+        if v == v1 then true
+        else if
+          DLL.exsist
+            (fun e -> e.value == v2)
+            (Hashtbl.find data_struct (make_name v)).is_supporting
+        then false
+        else match v.next with None -> true | Some e -> aux e
+      in
+      aux (DLL.get v1.dll_father.content).first
+    in
+
+    let rec aux = function
+      | [] -> ()
+      | d1 :: tl ->
+          DLL.iter
+            (fun v1 ->
+              let dom1 = Hashtbl.find data_struct (make_name v1) in
+              List.iter
+                (fun d2 ->
+                  DLL.iter
+                    (fun v2 ->
+                      if graph.relation v1 v2 then (
+                        let dom2 = Hashtbl.find data_struct (make_name v2) in
+                        (if should_add v2 v1 then
+                         let x = DLL.append v1 dom2.is_supporting in
+                         DLL.append x dom1.is_supported |> ignore);
+                        if should_add v1 v2 then
+                          let x = DLL.append v2 dom1.is_supporting in
+                          DLL.append x dom2.is_supported |> ignore))
+                    d2)
+                tl)
+            d1;
+          aux tl
+    in
+    aux domain_list;
+    (graph, data_struct)
+
+  (** For each value v in d1 it should exist a support in d2, otherwise we remove v from d1,
   returns the list of filtered values.
-  If the list is empty, then no modification has been performed on d1
-*)
-  let revise (node_to_remove : 'a DLL.dll_node) (compteurs : 'a compteurs) =
-    (* Look for the support to remove in compteurs *)
-    match DLL.find (fun e -> fst e.value == node_to_remove) compteurs with
+  If the list is empty, then no modification has been performed on d *)
+  let revise (node_to_remove : 'a DLL.dll_node)
+      ((graph, data_struct) as g : 'a data_struct) : 'a stack_operation =
+    (* Look for the support to remove in data_struct *)
+    match Hashtbl.find_opt data_struct (make_name node_to_remove) with
     | None -> raise (Not_in_support "AC_2001")
-    | Some remove ->
-        let to_remove_in_domain : 'a DLL.dll_node list ref = ref [] in
-        let to_remove_sibling = ref [] in
-        (* We remove the support since it exists *)
-        DLL.remove remove;
-        DLL.iter
-          (fun (current : 'a double_connection DLL.dll_node) ->
-            let sibling = Option.get current.value.assoc in
-            (* We remove the support from the values depending on node_to_remove *)
-            DLL.remove sibling;
-            to_remove_sibling := sibling :: !to_remove_sibling;
-            if
-              (* Here we remove the value from the other domain since the value has no more support *)
-              DLL.not_exsist
-                (fun e -> e.value.value.dll_father == node_to_remove.dll_father)
-                sibling.dll_father
-            then
-              to_remove_in_domain := current.value.value :: !to_remove_in_domain)
-          (snd remove.value);
+    | Some node ->
+        let removed_in_domain = ref [] in
+        let appended_in_support = ref [] in
+        let removed_from_is_supported = ref [] in
+        (* We remove the support *)
+        Hashtbl.remove data_struct (make_name node.value);
+        (* Remove node_to_remove from all the node supporting it *)
+        DLL.iter_value
+          (fun value ->
+            removed_from_is_supported := value :: !removed_from_is_supported;
+            DLL.remove value)
+          node.is_supported;
+        DLL.iter_value
+          (fun current ->
+            match
+              Option.bind node_to_remove.next
+                (DLL.find_from (graph.relation current))
+            with
+            | None -> removed_in_domain := current :: !removed_in_domain
+            | Some e ->
+                (* Here there exists a next of node_to_remove linked to current *)
+                let dom = Hashtbl.find data_struct (make_name e) in
+                let appended = DLL.append current dom.is_supporting in
+                appended_in_support := appended :: !appended_in_support)
+          node.is_supporting;
         {
-          to_remove_in_domain = !to_remove_in_domain;
-          to_remove_in_support = remove;
-          to_remove_sibling = !to_remove_sibling;
+          removed_in_domain = !removed_in_domain;
+          removed_in_support = node;
+          appended_in_support = !appended_in_support;
           input = node_to_remove;
+          data_struct = g;
+          removed_from_is_supported = !removed_from_is_supported;
         }
 
   let back_track
-      { to_remove_in_domain; to_remove_in_support; to_remove_sibling; input } =
-    List.iter DLL.insert to_remove_in_domain;
-    DLL.insert to_remove_in_support;
-    List.iter DLL.insert to_remove_sibling;
+      {
+        removed_in_domain;
+        removed_in_support;
+        appended_in_support;
+        removed_from_is_supported;
+        input;
+        data_struct;
+      } =
+    List.iter DLL.insert removed_in_domain;
+    List.iter DLL.insert removed_from_is_supported;
+    Hashtbl.add (snd data_struct)
+      (make_name removed_in_support.value)
+      removed_in_support;
+    List.iter DLL.remove appended_in_support;
     DLL.insert input
-
-  let get_to_remove { to_remove_in_domain; _ } = to_remove_in_domain
 end
 
 include AC_2001
