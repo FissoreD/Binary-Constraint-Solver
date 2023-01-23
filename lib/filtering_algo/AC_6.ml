@@ -32,9 +32,8 @@ module AC_6 : Filtrage.Algo_Filtrage = struct
     Hashtbl.iter
       (fun _ (e : 'a cell_type) ->
         Printf.printf "%s supports [ " e.value.value;
-        DLL.iter
-          (fun (e : 'a DLL.dll_node DLL.dll_node) ->
-            Printf.printf "%s " e.value.value)
+        DLL.iter_value
+          (fun (e : 'a DLL.dll_node) -> Printf.printf "%s " e.value)
           e.is_supporting;
         print_endline "]")
       x
@@ -100,27 +99,25 @@ module AC_6 : Filtrage.Algo_Filtrage = struct
         let removed_in_domain = ref [] in
         let appended_in_support = ref [] in
         let removed_from_is_supported = ref [] in
-        (* We remove the support since it exists *)
-        DLL.remove node.value;
+        (* We remove the support *)
         Hashtbl.remove compteurs (make_name node.value);
         (* Remove node_to_remove from all the node supporting it *)
-        DLL.iter
-          (fun e ->
-            removed_from_is_supported := e.value :: !removed_from_is_supported;
-            DLL.remove e.value)
+        DLL.iter_value
+          (fun value ->
+            removed_from_is_supported := value :: !removed_from_is_supported;
+            DLL.remove value)
           node.is_supported;
-        DLL.iter
+        DLL.iter_value
           (fun current ->
-            let sibling = current.value in
             match
               Option.bind node_to_remove.next
-                (DLL.find_from (fun e -> graph.relation e sibling))
+                (DLL.find_from (graph.relation current))
             with
-            | None -> removed_in_domain := sibling :: !removed_in_domain
+            | None -> removed_in_domain := current :: !removed_in_domain
             | Some e ->
                 (* Here there exists a next of node_to_remove linked to current *)
                 let dom = Hashtbl.find compteurs (make_name e) in
-                let appended = DLL.append sibling dom.is_supporting in
+                let appended = DLL.append current dom.is_supporting in
                 appended_in_support := appended :: !appended_in_support)
           node.is_supporting;
         {

@@ -73,6 +73,7 @@ let print_string_domain ?(is_rev = false) (d : string domain) =
 let print_domains f { domains; _ } =
   print_endline "-- Start Domains --";
   Hashtbl.iter (fun _ v -> f v) domains;
-  print_endline "--- End Domains --"
+  print_endline "--- End Domains ---"
 
-let print_string_domains = print_domains print_string_domain
+let print_string_domains ?(is_rev = false) =
+  print_domains (print_string_domain ~is_rev)

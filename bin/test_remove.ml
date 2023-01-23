@@ -30,3 +30,14 @@ let _test_remove () =
   DLL.remove node;
   Constraint.print_string_domain d1;
   Constraint.print_string_domain ~is_rev:true d1
+
+let _d1 () =
+  let dom = build_domain "TEST" 5 in
+  Constraint.print_string_domain dom;
+
+  DLL.remove_by_value "1" dom |> ignore;
+  DLL.remove_by_value "3" dom |> ignore;
+
+  Constraint.print_string_domain dom
+
+let () = _d1 ()

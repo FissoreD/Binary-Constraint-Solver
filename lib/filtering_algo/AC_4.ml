@@ -22,11 +22,10 @@ module AC_4 : Filtrage.Algo_Filtrage = struct
   }
 
   let print_compteurs (c : 'a compteurs) =
-    DLL.iter
-      (fun ({ value; _ } : 'a cell_type DLL.dll_node) ->
-        let a, b = value in
+    DLL.iter_value
+      (fun ((a, b) : 'a cell_type) ->
         Printf.printf "%s is supported by " a.value;
-        DLL.iter (fun e -> Printf.printf "%s " e.value.value.value) b;
+        DLL.iter_value (fun e -> Printf.printf "%s " e.value.value) b;
         print_newline ())
       c
 
@@ -61,9 +60,9 @@ module AC_4 : Filtrage.Algo_Filtrage = struct
         let to_remove_sibling = ref [] in
         (* We remove the support since it exists *)
         DLL.remove remove;
-        DLL.iter
-          (fun (current : 'a double_connection DLL.dll_node) ->
-            let sibling = Option.get current.value.assoc in
+        DLL.iter_value
+          (fun (current : 'a double_connection) ->
+            let sibling = Option.get current.assoc in
             (* We remove the support from the values depending on node_to_remove *)
             DLL.remove sibling;
             to_remove_sibling := sibling :: !to_remove_sibling;
@@ -72,8 +71,7 @@ module AC_4 : Filtrage.Algo_Filtrage = struct
               DLL.not_exsist
                 (fun e -> e.value.value.dll_father == node_to_remove.dll_father)
                 sibling.dll_father
-            then
-              to_remove_in_domain := current.value.value :: !to_remove_in_domain)
+            then to_remove_in_domain := current.value :: !to_remove_in_domain)
           (snd remove.value);
         {
           to_remove_in_domain = !to_remove_in_domain;

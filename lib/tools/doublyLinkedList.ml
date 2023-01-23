@@ -26,7 +26,6 @@ let add_after_node current node =
   node
 
 let add_after current value =
-  if is_empty current.dll_father then invalid_arg "Why it is empty ?? a";
   let value = make_node value current.dll_father in
   add_after_node current value
 
@@ -40,7 +39,6 @@ let add_before_node current node =
   node
 
 let add_before current value =
-  (* if is_empty current.dll_father then invalid_arg "Why it is empty ?? b"; *)
   let value = make_node value current.dll_father in
   add_before_node current value
 
@@ -49,7 +47,6 @@ let append e dll =
   | None ->
       let node = make_node e dll in
       dll.content := Some { first = node; last = node };
-      if is_empty node.dll_father then invalid_arg "Why it is empty ?? c";
       node
   | Some { last; _ } -> add_after last e
 
@@ -63,7 +60,6 @@ let append_node node dll =
 let prepend e dll =
   match !(dll.content) with
   | None ->
-      if is_empty e.dll_father then invalid_arg "Why it is empty ?? d";
       let node = make_node e dll in
       dll.content := Some { first = node; last = node };
       node
@@ -102,7 +98,7 @@ let remove_after current =
 
 let remove_before current =
   match current.prev with
-  | None -> current.prev
+  | None -> None
   | Some removed ->
       current.prev <- removed.prev;
       (match removed.prev with None -> () | Some e -> e.next <- Some current);
@@ -162,7 +158,7 @@ let exsist p (t : 'a t) = find p t <> None
 let not_exsist p (t : 'a t) = find p t = None
 
 let remove (node : 'a dll_node) =
-  let dom1 = Option.get !(node.dll_father.content) in
+  let dom1 = get node.dll_father.content in
   match (node.prev, node.next) with
   | None, None -> node.dll_father.content := None
   | Some prev, None ->

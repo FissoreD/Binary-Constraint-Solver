@@ -14,15 +14,34 @@ module type Algo_Filtrage = sig
   val get_to_remove : string stack_operation -> string remove_in_domain
 end
 
-module Make (AF : Algo_Filtrage) = struct
+module type M = sig
   module DLL = DoublyLinkedList
+
+  val build_support : ?verbose:bool -> string Constraint.graph -> unit
+  val print_list_nodes : string DLL.dll_node list -> unit
+  val print_compteurs : unit -> unit
+  val print_domains : ?is_rev:bool -> unit -> unit
+  val print_domain_stats : unit -> unit
+  val remove_by_value : ?verbose:bool -> string -> string -> unit
+  val propagation_remove_by_value : ?verbose:bool -> string -> string -> unit
+  val propagation_select_by_value : ?verbose:bool -> string -> string -> unit
+  val back_track_remove : unit -> unit
+  val back_track_select : unit -> unit
+  val find_solution : ?verbose:bool -> unit -> unit
+end
+
+module Make (AF : Algo_Filtrage) : M = struct
+  module DLL = DoublyLinkedList
+
+  exception Empty_domain
 
   let support = ref None
   let graph = ref None
   let get_support () = Option.get !support
   let get_graph () = Option.get !graph
   let stack_op : 'a AF.stack_operation Stack.t = Stack.create ()
-  let stack_back_nb : int Stack.t = Stack.create ()
+  let stack_remove_numb_nb : int Stack.t = Stack.create ()
+  let stack_select_numb_nb : int Stack.t = Stack.create ()
   let add_stack = (Fun.flip Stack.push) stack_op
   let get_op () = Stack.pop stack_op
 
@@ -31,63 +50,135 @@ module Make (AF : Algo_Filtrage) = struct
     graph := Some graph';
     if verbose then AF.print_compteurs (get_support ())
 
-  let print_list_nodes l =
-    List.iter (fun (e : string DLL.dll_node) -> Printf.printf "%s " e.value) l;
-    print_newline ()
+  let to_str_node_list l =
+    let to_str (e : 'a DLL.dll_node) =
+      Printf.sprintf "(%s,%s)" e.dll_father.name e.value
+    in
+    let append a b = Printf.sprintf "%s, %s" (to_str b) a in
+    let rec aux = function
+      | [] -> ""
+      | [ hd ] -> to_str hd
+      | hd :: tl -> append (aux tl) hd
+    in
+    aux l
 
-  let remove_by_node ?(verbose = false) (node : 'a DLL.dll_node) =
-    if verbose then
-      Printf.printf "Removing %s from %s\n" node.value node.dll_father.name;
-    DLL.remove node;
-    let domain = node.dll_father in
-    if DLL.is_empty domain then invalid_arg "The domain should not be emtpy !";
-    (* TODO: in revise stop if a domain becomes empty !! *)
-    let filtered = AF.revise node (get_support ()) in
-    List.iter DLL.remove (AF.get_to_remove filtered);
-    add_stack filtered;
-    if verbose then (
-      print_string "List of values having no more support = ";
-      print_list_nodes (AF.get_to_remove filtered));
-    List.exists
-      (fun (e : 'a DLL.dll_node) -> DLL.is_empty e.dll_father)
-      (AF.get_to_remove filtered)
-
-  (** Returns if a fail has occured, i.e. if there is an empty domain among those that have been modified and the list of removed values *)
-  let remove_by_value ?(verbose = false) value domain =
-    match DLL.remove_by_value value domain with
-    | None ->
-        invalid_arg
-          (Printf.sprintf "The value %s does not exists in the domain %s" value
-             domain.name)
-    | Some value_in_domain -> remove_by_node ~verbose value_in_domain
-
-  let propagation ?(verbose = false) value domain =
-    match DLL.find (fun e -> e.value = value) domain with
-    | None ->
-        invalid_arg
-          (Printf.sprintf "Propagation: %s is not in %s" value domain.name)
-    | Some node ->
-        let cnt = ref 0 in
-        let rec aux (to_remove : string DLL.dll_node) =
-          incr cnt;
-          let stop = remove_by_node ~verbose to_remove in
-          if stop then invalid_arg "There exists an empty domain !";
-
-          let last_push = AF.get_to_remove (Stack.top stack_op) in
-          List.iter aux last_push
-        in
-        aux node;
-        Stack.push !cnt stack_back_nb
-
-  let back_track () =
-    for _ = Stack.pop stack_back_nb downto 1 do
-      get_op () |> AF.back_track
-    done
+  let print_list_nodes l = print_endline (to_str_node_list l)
 
   let print_compteurs () =
     print_endline "-- Start Compteurs --";
     AF.print_compteurs (get_support ());
     print_endline "--- End Compteurs ---"
 
-  let print_domains () = Constraint.print_string_domains (get_graph ())
+  let print_domains ?(is_rev = false) () =
+    Constraint.print_string_domains ~is_rev (get_graph ())
+
+  let print_domain_stats () =
+    Printf.printf "There are %d domains\n"
+      (Hashtbl.length (get_graph ()).domains);
+    Hashtbl.iter
+      (fun k v ->
+        let neigh_domains =
+          List.fold_left
+            (fun acc (e : string DLL.t) -> Printf.sprintf "%s,%s" e.name acc)
+            "" (DLL.to_list v)
+        in
+        Printf.printf "%s is linked to %d domains. They are : %s\n" k
+          (DLL.length v) neigh_domains)
+      (get_graph ()).constraint_binding
+
+  let remove_by_node ?(verbose = false) (node : 'a DLL.dll_node) =
+    if verbose then
+      Printf.printf "Removing %s from %s\n" node.value node.dll_father.name;
+    DLL.remove node;
+    let domain = node.dll_father in
+    if DLL.is_empty domain then raise Empty_domain;
+    let filtered = AF.revise node (get_support ()) in
+    add_stack filtered;
+    if verbose then (
+      print_string "List of values having no more support = ";
+      print_list_nodes (AF.get_to_remove filtered))
+
+  (** Returns if a fail has occured, i.e. if there is an empty domain among those that have been modified and the list of removed values *)
+  let remove_by_value ?(verbose = false) value domain_name =
+    match
+      DLL.find_by_value value (Constraint.get_domain (get_graph ()) domain_name)
+    with
+    | None ->
+        invalid_arg
+          (Printf.sprintf "The value %s does not exists in the domain %s" value
+             domain_name)
+    | Some value_in_domain -> remove_by_node ~verbose value_in_domain
+
+  let propagation_remove_by_node ?(verbose = false) node =
+    let cnt = ref 0 in
+    let rec aux (to_remove : string DLL.dll_node) =
+      incr cnt;
+      remove_by_node ~verbose to_remove;
+      let last_push = AF.get_to_remove (Stack.top stack_op) in
+      List.iter aux last_push
+    in
+    aux node;
+    Stack.push !cnt stack_remove_numb_nb
+
+  let propagation_remove_by_value ?(verbose = false) value domain_name =
+    let domain = Hashtbl.find (get_graph ()).domains domain_name in
+    match DLL.find (fun e -> e.value = value) domain with
+    | None ->
+        invalid_arg
+          ("Propagation remove: " ^ value ^ " is not in " ^ domain_name)
+    | Some node -> propagation_remove_by_node ~verbose node
+
+  let propagation_select_by_node ?(verbose = false) (v : 'a DLL.dll_node) =
+    if verbose then
+      Printf.printf "--> Selecting %s from %s\n" v.value v.dll_father.name;
+    let cnt = ref 0 in
+    DLL.iter
+      (fun (v' : 'a DLL.dll_node) ->
+        if v' != v then (
+          incr cnt;
+          propagation_remove_by_node ~verbose v'))
+      v.dll_father;
+    Stack.push !cnt stack_select_numb_nb;
+    if verbose then print_endline "<-- End selecting"
+
+  let propagation_select_by_value ?(verbose = false) value domain_name =
+    let domain = Hashtbl.find (get_graph ()).domains domain_name in
+    match DLL.find (fun e -> e.value = value) domain with
+    | None ->
+        invalid_arg
+          ("Propagation select: " ^ value ^ " is not in " ^ domain_name)
+    | Some node -> propagation_select_by_node ~verbose node
+
+  let back_track_remove () =
+    for _ = Stack.pop stack_remove_numb_nb downto 1 do
+      AF.back_track (get_op ())
+    done
+
+  let back_track_select () =
+    for _ = Stack.pop stack_select_numb_nb downto 1 do
+      for _ = Stack.pop stack_remove_numb_nb downto 1 do
+        AF.back_track (get_op ())
+      done
+    done
+
+  let find_solution ?(verbose = false) () =
+    let domains = Hashtbl.to_seq_values (get_graph ()).domains |> List.of_seq in
+    let number_of_fails = ref 0 in
+    let rec aux sol : string DLL.t list -> unit = function
+      | [] ->
+          MyPrint.print_color_str "blue"
+            ("A solution : " ^ to_str_node_list sol ^ " !!")
+      | hd :: tl ->
+          DLL.iter
+            (fun v ->
+              try
+                propagation_select_by_node ~verbose v;
+                aux (v :: sol) tl;
+                back_track_select ()
+              with Empty_domain -> incr number_of_fails)
+            hd
+    in
+    aux [] domains;
+    MyPrint.print_color_str "red"
+      (Printf.sprintf "The number of fails is %d" !number_of_fails)
 end
