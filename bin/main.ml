@@ -37,6 +37,7 @@ let () =
     | 3 -> (module AC_3)
     | 4 -> (module AC_4)
     | 6 -> (module AC_6)
+    | 2001 -> (module AC_2001)
     | _ -> invalid_arg "No valid -ac option"
   in
 
@@ -51,5 +52,7 @@ let () =
 
   Filtr.initialization graph;
   Filtr.print_domains ();
-  (* select (module Filtr) !verbose *)
   Filtr.find_solution ~verbose:!verbose ~one_sol:!one_sol ()
+(*Filtr.propagation_remove_by_value "2" "d2";
+  Filtr.back_track_remove ();
+  _print () *)

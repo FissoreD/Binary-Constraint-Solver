@@ -40,7 +40,7 @@ module Make (AF : Arc_Consistency) : M = struct
 
   let support = ref None
   let graph = ref None
-  let get_support () = Option.get !support
+  let get_data_struct () = Option.get !support
   let get_graph () = Option.get !graph
   let stack_op : 'a AF.stack_operation Stack.t = Stack.create ()
   let stack_remove_nb : int Stack.t = Stack.create ()
@@ -53,7 +53,7 @@ module Make (AF : Arc_Consistency) : M = struct
   let initialization ?(verbose = false) graph' =
     support := Some (AF.initialization graph');
     graph := Some graph';
-    if verbose then AF.print_data_struct (get_support ())
+    if verbose then AF.print_data_struct (get_data_struct ())
 
   let to_str_node_list l =
     let to_str (e : 'a DLL.dll_node) =
@@ -71,7 +71,7 @@ module Make (AF : Arc_Consistency) : M = struct
 
   let print_data_struct () =
     print_endline "-- Start data_struct --";
-    AF.print_data_struct (get_support ());
+    AF.print_data_struct (get_data_struct ());
     print_endline "--- End data_struct ---"
 
   let print_domains ?(is_rev = false) () =
@@ -97,7 +97,7 @@ module Make (AF : Arc_Consistency) : M = struct
     DLL.remove node;
     let domain = node.dll_father in
     if DLL.is_empty domain then raise Empty_domain;
-    let filtered = AF.revise node (get_support ()) in
+    let filtered = AF.revise node (get_data_struct ()) in
     add_stack filtered;
     if verbose then (
       print_string "List of values having no more support = ";
@@ -167,7 +167,10 @@ module Make (AF : Arc_Consistency) : M = struct
 
   let find_solution ?(verbose = false) ?(one_sol = false) () =
     let exception Stop_One_Sol in
-    let domains = Hashtbl.to_seq_values (get_graph ()).domains |> List.of_seq in
+    let domains =
+      Hashtbl.to_seq_values (get_graph ()).domains
+      |> List.of_seq |> List.sort compare
+    in
     let number_of_fails = ref 0 in
     let number_of_solutions = ref 0 in
     let print_fail sol =
@@ -187,6 +190,8 @@ module Make (AF : Arc_Consistency) : M = struct
             (fun v ->
               let sol = v :: sol in
               try
+                (* print_data_struct ();
+                   read_line () |> ignore; *)
                 propagation_select_by_node ~verbose v;
                 aux sol tl;
                 back_track_select ()

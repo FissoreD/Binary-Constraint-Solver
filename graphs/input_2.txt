@@ -1,15 +1,16 @@
 d1: a b c
-d2: 1 2 3 
+d2: 1 2 3 4 5 
 d3: e f g h
 --
 d1 a d2 1;
 d1 b d2 2;
 d1 c d2 2;
 d1 c d2 3;
+
 d2 1 d3 e;
 d2 2 d3 f;
 d2 3 d3 e;
 d2 3 d3 f;
 d2 3 d3 g;
-#d2 4 d3 e;
-#d2 5 d3 e;
+d2 4 d3 e;
+d2 5 d3 e;

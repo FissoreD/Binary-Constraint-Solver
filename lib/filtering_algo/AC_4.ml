@@ -56,10 +56,7 @@ module AC_4 : Filtrage.Arc_Consistency = struct
   let revise (input : 'a DLL.dll_node) (data_struct : 'a data_struct) =
     (* Look for the support to remove in data_struct *)
     match DLL.find (fun e -> fst e.value == input) data_struct with
-    | None ->
-        print_endline input.value;
-        print_data_struct data_struct;
-        raise (Not_in_support "AC_4")
+    | None -> raise (Not_in_support "AC_4")
     | Some to_remove_in_support ->
         let to_remove_in_domain = ref [] in
         let to_remove_sibling = ref [] in
