@@ -110,6 +110,7 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
       MyPrint.print_color_str "green"
         ("A solution : " ^ to_str_node_list sol ^ " !!")
     in
+    let time = Sys.time () in
     let rec aux sol : string DLL.t list -> unit = function
       | [] ->
           if not count_only then print_sol sol;
@@ -135,6 +136,8 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
       (Printf.sprintf "The number of fails is %d" !number_of_fails);
     MyPrint.print_color_str "green"
       (Printf.sprintf "The number of solutions is %d" !number_of_solutions);
+    MyPrint.print_color_str "gray"
+      (Printf.sprintf "Time: %f" (Sys.time () -. time));
     print_endline "------------------------------"
 
   (** Returns if a fail has occured, i.e. if there is an empty domain among those that have been modified and the list of removed values *)

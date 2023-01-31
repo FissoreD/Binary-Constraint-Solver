@@ -8,14 +8,11 @@ module AC_2001 : Arc_consistency.Arc_consistency = struct
   type 'a data_struct = 'a last * 'a Constraint.graph
 
   type 'a stack_operation = {
-    to_remove_in_domain : 'a DLL.dll_node list;
+    to_remove_in_domain : 'a remove_in_domain;
     undo_assoc :
       ('a DLL.dll_node DLL.dll_node * 'a DLL.dll_node DLL.dll_node) list;
     input : 'a DLL.dll_node;
   }
-
-  let make_name (node : 'a DLL.dll_node) =
-    Printf.sprintf "%s,%s" node.dll_father.name node.value
 
   let print_data_struct ((last, _) : 'a data_struct) =
     Hashtbl.iter
@@ -32,7 +29,9 @@ module AC_2001 : Arc_consistency.Arc_consistency = struct
     let graph = Arc_consistency.clean_domains ~print graph in
     let data_struct : string last = Hashtbl.create 1024 in
     let domain_list = Hashtbl.to_seq_values graph.domains |> List.of_seq in
-    let add_compteur v = Hashtbl.add data_struct (make_name v) (DLL.empty "") in
+    let add_compteur v =
+      Hashtbl.add data_struct (Arc_consistency.make_name v) (DLL.empty "")
+    in
     (* Add all values of every domains to the data_struct *)
     Hashtbl.iter (fun _ dom -> DLL.iter add_compteur dom) graph.domains;
 
@@ -44,7 +43,9 @@ module AC_2001 : Arc_consistency.Arc_consistency = struct
                try
                  (DLL.iter (fun v2 ->
                       if graph.relation v1 v2 then (
-                        DLL.append v2 (Hashtbl.find data_struct (make_name v1))
+                        DLL.append v2
+                          (Hashtbl.find data_struct
+                             (Arc_consistency.make_name v1))
                         |> ignore;
                         raise Found)))
                    d2
@@ -72,7 +73,7 @@ module AC_2001 : Arc_consistency.Arc_consistency = struct
       (fun d ->
         DLL.iter
           (fun v2 ->
-            let v2_name = make_name v2 in
+            let v2_name = Arc_consistency.make_name v2 in
             match Hashtbl.find_opt last_map v2_name with
             | None -> to_remove_in_domain := v2 :: !to_remove_in_domain
             | Some last -> (
