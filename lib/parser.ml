@@ -1,7 +1,8 @@
 module DLL = DoublyLinkedList
 
-let parse_file file_name =
-  let f = open_in file_name in
+let parse cnt =
+  List.iter print_endline cnt;
+  print_endline "";
   let graph = Constraint.build_constraint () in
   let domains : (string, string DLL.t) Hashtbl.t = Hashtbl.create 1024 in
   let add_domain s =
@@ -19,20 +20,33 @@ let parse_file file_name =
     | _ -> invalid_arg "Error in input file when parsing constraints"
   in
   let stage = ref 0 in
-  (try
-     while true do
-       let line =
-         Str.split (Str.regexp "[ :,;.]") (input_line f)
-         |> List.filter (( <> ) "")
-       in
-       (* print_endline line; *)
-       match line with
-       | [] | "#" :: _ -> ()
-       | h :: _ when String.starts_with ~prefix:"#" h -> ()
-       | "--" :: _ -> incr stage
-       | l when !stage = 0 -> add_domain l
-       | l -> add_constraint l
-     done
-   with End_of_file -> ());
-  close_in f;
+  List.iter
+    (fun line ->
+      let line =
+        Str.split (Str.regexp "[ :,;.]") line |> List.filter (( <> ) "")
+      in
+      (* print_endline line; *)
+      match line with
+      | [] | "#" :: _ -> ()
+      | h :: _ when String.starts_with ~prefix:"#" h -> ()
+      | "--" :: _ -> incr stage
+      | l when !stage = 0 -> add_domain l
+      | l -> add_constraint l)
+    cnt;
   graph
+
+let read_whole_file file_name =
+  let f = open_in file_name in
+  let rec aux () =
+    try
+      let l = input_line f in
+      l :: aux ()
+    with End_of_file ->
+      close_in f;
+      []
+  in
+  aux ()
+
+let parse_file file_name =
+  let res = parse (read_whole_file file_name) in
+  res

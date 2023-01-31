@@ -1,22 +1,3 @@
-module type Arc_Consistency = sig
-  exception Not_in_support of string
-
-  module DLL = DoublyLinkedList
-
-  type 'a data_struct
-  type 'a stack_operation
-  type 'a remove_in_domain = string DLL.dll_node list
-
-  val print_data_struct : string data_struct -> unit
-  val initialization : string Constraint.graph -> string data_struct
-
-  val revise :
-    string DLL.dll_node -> string data_struct -> string stack_operation
-
-  val back_track : string stack_operation -> unit
-  val get_to_remove : string stack_operation -> string remove_in_domain
-end
-
 module type M = sig
   module DLL = DoublyLinkedList
 
@@ -30,10 +11,17 @@ module type M = sig
   val propagation_select_by_value : ?verbose:bool -> string -> string -> unit
   val back_track_remove : unit -> unit
   val back_track_select : unit -> unit
-  val find_solution : ?verbose:bool -> ?one_sol:bool -> unit -> unit
+
+  val find_solution :
+    ?debug:bool ->
+    ?count_only:bool ->
+    ?verbose:bool ->
+    ?one_sol:bool ->
+    unit ->
+    unit
 end
 
-module Make (AF : Arc_Consistency) : M = struct
+module Make (AF : Arc_consistency.Arc_consistency) : M = struct
   module DLL = DoublyLinkedList
 
   exception Empty_domain
@@ -165,7 +153,9 @@ module Make (AF : Arc_Consistency) : M = struct
       back_track_remove ()
     done
 
-  let find_solution ?(verbose = false) ?(one_sol = false) () =
+  let find_solution ?(debug = false) ?(count_only = false) ?(verbose = false)
+      ?(one_sol = false) () =
+    debug |> ignore;
     let exception Stop_One_Sol in
     let domains =
       Hashtbl.to_seq_values (get_graph ()).domains
@@ -182,8 +172,8 @@ module Make (AF : Arc_Consistency) : M = struct
     in
     let rec aux sol : string DLL.t list -> unit = function
       | [] ->
+          if not count_only then print_sol sol;
           incr number_of_solutions;
-          print_sol sol;
           if one_sol then raise Stop_One_Sol
       | hd :: tl ->
           DLL.iter
@@ -203,7 +193,7 @@ module Make (AF : Arc_Consistency) : M = struct
                   AF.back_track (get_op ())
                 done;
                 incr number_of_fails;
-                print_fail sol)
+                if not count_only then print_fail sol)
             hd
     in
     (try aux [] domains with Stop_One_Sol -> ());

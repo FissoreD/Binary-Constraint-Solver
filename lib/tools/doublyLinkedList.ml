@@ -164,8 +164,19 @@ let find_all p (t : 'a t) =
       aux first []
 
 let find_by_value (value : 'a) = find (fun e -> e.value = value)
-let exsist p (t : 'a t) = find p t <> None
-let not_exsist p (t : 'a t) = find p t = None
+let exist p (t : 'a t) = find p t <> None
+let not_exist p (t : 'a t) = find p t = None
+
+let forall p (t : 'a t) =
+  match !(t.content) with
+  | None -> false
+  | Some { first; _ } ->
+      let rec aux t =
+        p t && match t.next with None -> true | Some e -> aux e
+      in
+      aux first
+
+let forall_value p (t : 'a t) = forall (fun e -> p e.value) t
 
 let remove (node : 'a dll_node) =
   let dom1 = get node.dll_father.content in

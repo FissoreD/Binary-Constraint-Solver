@@ -1,4 +1,4 @@
-module AC_2001 : Filtrage.Arc_Consistency = struct
+module AC_2001 : Arc_consistency.Arc_consistency = struct
   exception Not_in_support of string
 
   module DLL = DoublyLinkedList

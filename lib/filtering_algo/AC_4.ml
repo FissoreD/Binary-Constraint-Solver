@@ -1,4 +1,4 @@
-module AC_4 : Filtrage.Arc_Consistency = struct
+module AC_4 : Arc_consistency.Arc_consistency = struct
   exception Not_in_support of string
 
   module DLL = DoublyLinkedList
@@ -70,7 +70,7 @@ module AC_4 : Filtrage.Arc_Consistency = struct
             to_remove_sibling := sibling :: !to_remove_sibling;
             if
               (* Here we remove the value from the other domain since the value has no more support *)
-              DLL.not_exsist
+              DLL.not_exist
                 (fun e -> e.value.value.dll_father == input.dll_father)
                 sibling.dll_father
             then to_remove_in_domain := current.value :: !to_remove_in_domain)

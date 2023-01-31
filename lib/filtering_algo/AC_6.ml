@@ -1,4 +1,4 @@
-module AC_6 : Filtrage.Arc_Consistency = struct
+module AC_6 : Arc_consistency.Arc_consistency = struct
   exception Not_in_support of string
 
   module DLL = DoublyLinkedList
@@ -52,7 +52,7 @@ module AC_6 : Filtrage.Arc_Consistency = struct
       let rec aux (v : string DLL.dll_node) =
         if v == v1 then true
         else if
-          DLL.exsist
+          DLL.exist
             (fun e -> e.value == v2)
             (Hashtbl.find data_struct (make_name v)).is_supporting
         then false

@@ -1,4 +1,4 @@
-module AC_3 : Filtrage.Arc_Consistency = struct
+module AC_3 : Arc_consistency.Arc_consistency = struct
   exception Not_in_support of string
 
   module DLL = DoublyLinkedList
@@ -23,7 +23,7 @@ module AC_3 : Filtrage.Arc_Consistency = struct
     DLL.iter_value
       (DLL.iter (fun current ->
            let remove_current =
-             DLL.not_exsist (fun e -> support.relation current e) d1.dll_father
+             DLL.not_exist (fun e -> support.relation current e) d1.dll_father
            in
            if remove_current then
              to_remove_in_domain := current :: !to_remove_in_domain))
