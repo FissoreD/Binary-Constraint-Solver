@@ -30,10 +30,7 @@ module AC_3 : Arc_consistency.Arc_consistency = struct
       (Constraint.get_constraint_binding support d1.dll_father);
     { input = d1; to_remove_in_domain = !to_remove_in_domain }
 
-  let back_track { to_remove_in_domain; input } =
-    List.iter DLL.insert to_remove_in_domain;
-    DLL.insert input
-
+  let back_track { input; _ } = if not input.is_in then DLL.insert input
   let get_to_remove { to_remove_in_domain; _ } = to_remove_in_domain
 end
 

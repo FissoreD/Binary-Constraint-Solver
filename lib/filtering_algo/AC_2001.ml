@@ -99,13 +99,12 @@ module AC_2001 : Arc_consistency.Arc_consistency = struct
       undo_assoc = !undo_assoc;
     }
 
-  let back_track { to_remove_in_domain; input; undo_assoc } =
+  let back_track { input; undo_assoc; _ } =
     List.iter
       (fun (v1, v2) ->
         DLL.remove v1;
         DLL.insert v2)
       undo_assoc;
-    List.iter DLL.insert to_remove_in_domain;
     DLL.insert input
 
   let get_to_remove { to_remove_in_domain; _ } = to_remove_in_domain

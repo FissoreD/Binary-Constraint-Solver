@@ -1,6 +1,7 @@
 module DLL = DoublyLinkedList
 
-let parse cnt =
+let parse ?(print_inp = false) cnt =
+  if print_inp then List.iter print_endline cnt;
   let graph = Constraint.build_constraint () in
   let domains : (string, string DLL.t) Hashtbl.t = Hashtbl.create 1024 in
   let add_domain s =
@@ -45,6 +46,6 @@ let read_whole_file file_name =
   in
   aux ()
 
-let parse_file file_name =
-  let res = parse (read_whole_file file_name) in
+let parse_file ?(print_inp = false) file_name =
+  let res = parse ~print_inp (read_whole_file file_name) in
   res

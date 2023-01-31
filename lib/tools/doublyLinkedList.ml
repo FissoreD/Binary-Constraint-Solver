@@ -1,9 +1,13 @@
+exception AlreadyIn
+exception AlreadyOut
+
 (* The type of the double linked list (ddl) *)
 type 'e dll_node = {
   value : 'e;
+  dll_father : 'e t;
   mutable prev : 'e dll_node option;
   mutable next : 'e dll_node option;
-  dll_father : 'e t;
+  mutable is_in : bool;
 }
 
 and 'e sentinel = { mutable first : 'e dll_node; mutable last : 'e dll_node }
@@ -12,7 +16,9 @@ and 'e t = { name : string; content : 'e sentinel option ref }
 let empty name = { name; content = ref None }
 let get d = Option.get !d
 let is_empty d = !(d.content) = None
-let make_node value dll_father = { value; prev = None; next = None; dll_father }
+
+let make_node value dll_father =
+  { is_in = true; value; prev = None; next = None; dll_father }
 
 let add_after_node current node =
   if current.dll_father != node.dll_father then
@@ -66,6 +72,8 @@ let prepend e dll =
   | Some { first; _ } -> add_before first e
 
 let insert e =
+  if e.is_in then raise AlreadyIn;
+  e.is_in <- true;
   match !(e.dll_father.content) with
   | None -> e.dll_father.content := Some { first = e; last = e }
   | Some father -> (
@@ -179,6 +187,8 @@ let forall p (t : 'a t) =
 let forall_value p (t : 'a t) = forall (fun e -> p e.value) t
 
 let remove (node : 'a dll_node) =
+  if not node.is_in then raise AlreadyOut;
+  node.is_in <- false;
   let dom1 = get node.dll_father.content in
   match (node.prev, node.next) with
   | None, None -> node.dll_father.content := None

@@ -22,14 +22,12 @@ module AC_4 : Arc_consistency.Arc_consistency = struct
   }
 
   let print_data_struct (c : 'a data_struct) =
-    print_endline "---------------------";
     DLL.iter_value
       (fun ((a, b) : 'a cell_type) ->
         Printf.printf "%s is supported by " a.value;
         DLL.iter_value (fun e -> Printf.printf "%s " e.value.value) b;
         print_newline ())
-      c;
-    print_endline "---------------------"
+      c
 
   let initialization ?(print = false) (graph : 'a Constraint.graph) =
     let graph = Arc_consistency.clean_domains ~print graph in
@@ -39,15 +37,16 @@ module AC_4 : Arc_consistency.Arc_consistency = struct
         DLL.iter (fun v -> DLL.append (v, DLL.empty "") data_struct |> ignore) d)
       graph.domains;
     let add_new_pair elt =
-      DLL.find_assoc (( == ) elt) data_struct |> Option.get
+      Option.get (DLL.find_assoc (( == ) elt) data_struct)
     in
     Hashtbl.iter
-      (fun _ (a, b) ->
-        let x, y = (add_new_pair a, add_new_pair b) in
-        let last_x = DLL.append { value = b; assoc = None } (snd x.value) in
-        let last_y = DLL.append { value = a; assoc = None } (snd y.value) in
-        last_x.value.assoc <- Some last_y;
-        last_y.value.assoc <- Some last_x)
+      (fun _ ((a : string DLL.dll_node), (b : string DLL.dll_node)) ->
+        if a.is_in && b.is_in then (
+          let x, y = (add_new_pair a, add_new_pair b) in
+          let last_x = DLL.append { value = b; assoc = None } (snd x.value) in
+          let last_y = DLL.append { value = a; assoc = None } (snd y.value) in
+          last_x.value.assoc <- Some last_y;
+          last_y.value.assoc <- Some last_x))
       graph.tbl;
     data_struct
 
@@ -83,9 +82,7 @@ module AC_4 : Arc_consistency.Arc_consistency = struct
           input;
         }
 
-  let back_track
-      { to_remove_in_domain; to_remove_in_support; to_remove_sibling; input } =
-    List.iter DLL.insert to_remove_in_domain;
+  let back_track { to_remove_in_support; to_remove_sibling; input; _ } =
     DLL.insert to_remove_in_support;
     List.iter DLL.insert to_remove_sibling;
     DLL.insert input

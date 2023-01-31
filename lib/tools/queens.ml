@@ -25,4 +25,5 @@ let make_domains n =
   let res = Buffer.contents buf_head in
   res
 
-let build_graph n = Parser.parse (String.split_on_char '\n' (make_domains n))
+let build_graph ?(print_inp = false) n =
+  Parser.parse ~print_inp (String.split_on_char '\n' (make_domains n))

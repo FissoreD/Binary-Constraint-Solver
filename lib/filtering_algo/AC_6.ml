@@ -133,14 +133,13 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
 
   let back_track
       {
-        removed_in_domain;
         removed_in_support;
         appended_in_support;
         removed_from_is_supported;
         input;
         data_struct;
+        _;
       } =
-    List.iter DLL.insert removed_in_domain;
     List.iter DLL.insert removed_from_is_supported;
     Hashtbl.add (snd data_struct)
       (make_name removed_in_support.value)

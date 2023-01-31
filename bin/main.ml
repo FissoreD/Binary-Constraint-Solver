@@ -1,21 +1,12 @@
 open Constraint_Solver_with_Backpropagation
 module DLL = DoublyLinkedList
 
-let _select (module Filtr : Filtrage.M) verbose =
-  Filtr.propagation_select_by_value ~verbose "b" "d1";
-
-  MyPrint.print_color_str "blue" "-- After Select --";
-  Filtr.print_domains ();
-
-  Filtr.back_track_select ();
-  MyPrint.print_color_str "blue" "-- After Backtrack --";
-  Filtr.print_domains ()
-
 let () =
   let open Arg in
   let algo = ref 3 in
   let verbose = ref false in
   let path = ref "graphs/input_2.txt" in
+  let print_inp = ref false in
   let one_sol = ref false in
   let queens = ref (-1) in
   let count_only = ref false in
@@ -34,6 +25,7 @@ let () =
           Set count_only,
           " Only print the number of fails and solutions" );
         ("-d", Set debug, " Debug mode");
+        ("-print-inp", Set print_inp, " Print the input graph");
       ]
   in
 
@@ -50,19 +42,12 @@ let () =
   in
 
   let module M = (val m : Arc_consistency.Arc_consistency) in
-  let module Filtr = Filtrage.Make (M) in
-  let _print () =
-    Filtr.print_domains ();
-    Filtr.print_data_struct ()
-  in
-
+  let module Filtr = Solver.Make (M) in
   let graph =
-    if !queens > 0 then Queens.build_graph !queens else Parser.parse_file !path
+    if !queens > 4 then Queens.build_graph ~print_inp:!print_inp !queens
+    else Parser.parse_file ~print_inp:!print_inp !path
   in
 
   Filtr.initialization graph;
   Filtr.find_solution ~debug:!debug ~count_only:!count_only ~verbose:!verbose
     ~one_sol:!one_sol ()
-(*Filtr.propagation_remove_by_value "2" "d2";
-  Filtr.back_track_remove ();
-  _print () *)
