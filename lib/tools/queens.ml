@@ -23,7 +23,6 @@ let make_domains n =
   Buffer.add_buffer buf_head buf_tail;
 
   let res = Buffer.contents buf_head in
-  print_endline res;
   res
 
 let build_graph n = Parser.parse (String.split_on_char '\n' (make_domains n))

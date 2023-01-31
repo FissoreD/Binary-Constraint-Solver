@@ -13,7 +13,7 @@ module AC_3 : Arc_consistency.Arc_consistency = struct
   type 'a data_struct = 'a Constraint.graph
 
   let print_data_struct = ignore
-  let initialization = Fun.id
+  let initialization = Arc_consistency.clean_domains
 
   (** For each value v in d1 it should exist a support in d2, otherwise we remove v from d1,
   returns the list of filtered values.

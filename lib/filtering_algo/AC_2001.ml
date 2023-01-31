@@ -26,8 +26,10 @@ module AC_2001 : Arc_consistency.Arc_consistency = struct
           |> List.fold_left (Printf.sprintf "%s - %s") ""))
       last
 
-  let initialization (graph : 'a Constraint.graph) : 'a data_struct =
+  let initialization ?(print = false) (graph : 'a Constraint.graph) :
+      'a data_struct =
     let exception Found in
+    let graph = Arc_consistency.clean_domains ~print graph in
     let data_struct : string last = Hashtbl.create 1024 in
     let domain_list = Hashtbl.to_seq_values graph.domains |> List.of_seq in
     let add_compteur v = Hashtbl.add data_struct (make_name v) (DLL.empty "") in

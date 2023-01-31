@@ -56,10 +56,11 @@ let () =
     Filtr.print_data_struct ()
   in
 
-  let graph = Parser.parse_file !path in
+  let graph =
+    if !queens > 0 then Queens.build_graph !queens else Parser.parse_file !path
+  in
 
   Filtr.initialization graph;
-  Filtr.print_domains ();
   Filtr.find_solution ~debug:!debug ~count_only:!count_only ~verbose:!verbose
     ~one_sol:!one_sol ()
 (*Filtr.propagation_remove_by_value "2" "d2";

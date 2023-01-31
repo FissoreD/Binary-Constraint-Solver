@@ -31,12 +31,13 @@ module AC_4 : Arc_consistency.Arc_consistency = struct
       c;
     print_endline "---------------------"
 
-  let initialization (g : 'a Constraint.graph) =
+  let initialization ?(print = false) (graph : 'a Constraint.graph) =
+    let graph = Arc_consistency.clean_domains ~print graph in
     let data_struct : 'a data_struct = DLL.empty "compteur" in
     Hashtbl.iter
       (fun _ (d : 'a DoublyLinkedList.t) ->
         DLL.iter (fun v -> DLL.append (v, DLL.empty "") data_struct |> ignore) d)
-      g.domains;
+      graph.domains;
     let add_new_pair elt =
       DLL.find_assoc (( == ) elt) data_struct |> Option.get
     in
@@ -47,7 +48,7 @@ module AC_4 : Arc_consistency.Arc_consistency = struct
         let last_y = DLL.append { value = a; assoc = None } (snd y.value) in
         last_x.value.assoc <- Some last_y;
         last_y.value.assoc <- Some last_x)
-      g.tbl;
+      graph.tbl;
     data_struct
 
   (** For each value v in d1 it should exist a support in d2, otherwise we remove v from d1,

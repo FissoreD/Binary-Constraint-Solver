@@ -10,7 +10,9 @@ module type Arc_consistency = sig
   type 'a remove_in_domain = string DLL.dll_node list
 
   val print_data_struct : string data_struct -> unit
-  val initialization : string Constraint.graph -> string data_struct
+
+  val initialization :
+    ?print:bool -> string Constraint.graph -> string data_struct
 
   val revise :
     string DLL.dll_node -> string data_struct -> string stack_operation

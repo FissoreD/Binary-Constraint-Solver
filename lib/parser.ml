@@ -1,8 +1,6 @@
 module DLL = DoublyLinkedList
 
 let parse cnt =
-  List.iter print_endline cnt;
-  print_endline "";
   let graph = Constraint.build_constraint () in
   let domains : (string, string DLL.t) Hashtbl.t = Hashtbl.create 1024 in
   let add_domain s =
