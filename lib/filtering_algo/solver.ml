@@ -21,6 +21,8 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
 
   exception Empty_domain
 
+  let time_of_backtracks = ref 0.
+  let time_of_revise = ref 0.
   let support = ref None
   let graph = ref None
   let get_data_struct () = Option.get !support
@@ -62,7 +64,9 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
   let remove_by_node ?(verbose = false) (node : 'a DLL.dll_node) =
     if node.is_in then (
       DLL.remove node;
+      let t = Sys.time () in
       let unsupported = AF.revise node (get_data_struct ()) in
+      time_of_revise := Sys.time () -. t +. !time_of_revise;
       add_stack @@ unsupported;
       if verbose then (
         MyPrint.print_color_str "red"
@@ -88,19 +92,18 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
       (fun v' -> if v' != v then propagation_remove_by_node ~verbose v')
       v.dll_father
 
-  let back_track_remove () =
+  let back_track () =
     let top = Stack.pop stack_remove_nb in
+    let t = Sys.time () in
     while top != Stack.top stack_op do
       AF.back_track (get_op ())
-    done
+    done;
+    time_of_backtracks := Sys.time () -. t +. !time_of_backtracks
 
   let find_solution ?(debug = false) ?(count_only = false) ?(verbose = false)
       ?(one_sol = false) () =
     let exception Stop_One_Sol in
-    let domains =
-      Hashtbl.to_seq_values (get_graph ()).domains
-      |> List.of_seq |> List.sort compare
-    in
+    let domains = Constraint.list_domains (get_graph ()) |> List.sort compare in
     let number_of_fails = ref 0 in
     let number_of_solutions = ref 0 in
     let print_fail sol =
@@ -128,7 +131,7 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
                with Empty_domain ->
                  incr number_of_fails;
                  if not count_only then print_fail sol);
-              back_track_remove ())
+              back_track ())
             hd
     in
     (try aux [] domains with Stop_One_Sol -> ());
@@ -138,7 +141,11 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
     MyPrint.print_color_str "green"
       (Printf.sprintf "The number of solutions is %d" !number_of_solutions);
     MyPrint.print_color_str "gray"
-      (Printf.sprintf "Time: %f" (Sys.time () -. time));
+      (Printf.sprintf "Total Time: %f" (Sys.time () -. time));
+    MyPrint.print_color_str "gray"
+      (Printf.sprintf "Time of backtracks: %f" !time_of_backtracks);
+    MyPrint.print_color_str "gray"
+      (Printf.sprintf "Time of revise: %f" !time_of_revise);
     print_endline "------------------------------"
 
   (** Returns if a fail has occured, i.e. if there is an empty domain among those that have been modified and the list of removed values *)
@@ -153,7 +160,7 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
     | Some value_in_domain -> remove_by_node ~verbose value_in_domain
 
   let propagation_remove_by_value ?(verbose = false) value domain_name =
-    let domain = Hashtbl.find (get_graph ()).domains domain_name in
+    let domain = Constraint.get_domain (get_graph ()) domain_name in
     match DLL.find (fun e -> e.value = value) domain with
     | None ->
         invalid_arg
@@ -161,7 +168,7 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
     | Some node -> propagation_remove_by_node ~verbose node
 
   let propagation_select_by_value ?(verbose = false) value domain_name =
-    let domain = Hashtbl.find (get_graph ()).domains domain_name in
+    let domain = Constraint.get_domain (get_graph ()) domain_name in
     match DLL.find (fun e -> e.value = value) domain with
     | None ->
         invalid_arg

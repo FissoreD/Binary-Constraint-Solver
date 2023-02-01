@@ -34,12 +34,12 @@ module AC_2001 : Arc_consistency.Arc_consistency = struct
     let exception Found in
     let graph = Arc_consistency.clean_domains ~print graph in
     let last : string last = Hashtbl.create 1024 in
-    let domain_list = Hashtbl.to_seq_values graph.domains |> List.of_seq in
+    let domain_list = Constraint.list_domains graph in
     let add_compteur (v : 'a DLL.dll_node) =
       Hashtbl.add last v.id (v, Hashtbl.create 2048)
     in
     (* Add all values of every domains to the data_struct *)
-    Hashtbl.iter (fun _ dom -> DLL.iter add_compteur dom) graph.domains;
+    Constraint.loop_domains (fun dom -> DLL.iter add_compteur dom) graph;
 
     (* Add all values of every domains to the data_struct *)
     List.iter
@@ -67,16 +67,17 @@ module AC_2001 : Arc_consistency.Arc_consistency = struct
     let undo_assoc = ref [] in
     DLL.iter_value
       (DLL.iter (fun v2 ->
-           let _, last_supp = Hashtbl.find last v2.id in
-           let old =
-             DLL.get_first (Hashtbl.find last_supp v1.dll_father.name)
+           let last_value =
+             DLL.get_first
+               (Hashtbl.find (snd (Hashtbl.find last v2.id)) v1.dll_father.name)
            in
-           if old.value == v1 then
+           if last_value.value == v1 then
              match DLL.find_from_next (graph.relation v2) v1 with
              | None -> to_remove_in_domain := v2 :: !to_remove_in_domain
              | Some next ->
-                 DLL.prepend next old.dll_father;
-                 undo_assoc := DLL.get_first old.dll_father :: !undo_assoc))
+                 DLL.prepend next last_value.dll_father;
+                 undo_assoc :=
+                   DLL.get_first last_value.dll_father :: !undo_assoc))
       (Constraint.get_constraint_binding graph v1.dll_father);
     {
       input = v1;

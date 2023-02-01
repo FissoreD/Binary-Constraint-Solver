@@ -32,13 +32,13 @@ let make_name (node : 'a DLL.dll_node) =
   Printf.sprintf "(%s,%s)" node.dll_father.name node.value
 
 let clean_domains ?(print = false) (g : 'a Constraint.graph) =
-  Hashtbl.iter
-    (fun _ (d1 : 'a DLL.t) ->
+  Constraint.loop_domains
+    (fun (d1 : 'a DLL.t) ->
       let neighs = Constraint.get_constraint_binding g d1 in
       DLL.iter
         (fun v1 ->
           if not (DLL.forall_value (DLL.exist (g.relation v1)) neighs) then
             init_remove print v1)
         d1)
-    g.domains;
+    g;
   g

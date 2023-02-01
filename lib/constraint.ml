@@ -9,6 +9,8 @@ module DLL = DoublyLinkedList
 type 'a cell_type = 'a DLL.dll_node * 'a DLL.dll_node
 type 'a relation = 'a DLL.dll_node -> 'a DLL.dll_node -> bool
 
+(* module StrMap = Map.Make (String) *)
+
 type 'a table_type =
   ( string * string * string * string,
     'a DLL.dll_node * 'a DLL.dll_node )
@@ -20,8 +22,8 @@ type 'a graph = {
   tbl : 'a table_type;
   relation : 'a relation;
   (* A dict from a domain name to all domains depending on it *)
-  constraint_binding : (string, 'a domain DLL.t) Hashtbl.t;
-  domains : (string, 'a DLL.t) Hashtbl.t;
+  mutable constraint_binding : (string, 'a domain DLL.t) Hashtbl.t;
+  mutable domains : (string, 'a DLL.t) Hashtbl.t;
 }
 
 let make_tuple (a : 'a DLL.dll_node) (b : 'a DLL.dll_node) =
@@ -35,8 +37,8 @@ let build_constraint () : 'a graph =
   {
     tbl;
     relation = find_relation tbl;
-    constraint_binding = Hashtbl.create 1024;
-    domains = Hashtbl.create 1024;
+    constraint_binding = Hashtbl.create 2048;
+    domains = Hashtbl.create 2048;
   }
 
 let add_constraint (support : 'a graph) d1 v1 d2 v2 =
@@ -86,3 +88,6 @@ let find_vard_by_id { domains; _ } id =
       if !res <> None then raise Not_found)
     domains;
   Option.get !res
+
+let loop_domains f g = Hashtbl.iter (fun _ v -> f v) g.domains
+let list_domains g = Hashtbl.to_seq_values g.domains |> List.of_seq

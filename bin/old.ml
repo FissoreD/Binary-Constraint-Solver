@@ -90,11 +90,11 @@ let _ac_4 () =
   Constraint.print_string_domains support
 
 let _ac_6 () =
-  let d1, d2, support = build_constraint () in
+  let d1, d2, graph = build_constraint () in
 
-  Printf.printf "** length : %d\n" (Hashtbl.length support.domains);
+  Printf.printf "** length : %d\n" (List.length (Constraint.list_domains graph));
 
-  let supp = AC_6.initialization support in
+  let supp = AC_6.initialization graph in
   AC_6.print_data_struct supp;
 
   List.iter
@@ -120,6 +120,6 @@ let _ac_6 () =
   AC_6.print_data_struct supp;
 
   print_endline "";
-  Constraint.print_string_domains support
+  Constraint.print_string_domains graph
 
 let () = _ac_3 ()

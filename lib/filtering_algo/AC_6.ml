@@ -39,7 +39,7 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
       'a data_struct =
     let graph = Arc_consistency.clean_domains ~print graph in
     let data_struct : (int, 'a cell_type) Hashtbl.t = Hashtbl.create 1024 in
-    let domain_list = Hashtbl.to_seq_values graph.domains |> List.of_seq in
+    let domain_list = Constraint.list_domains graph in
     let empty_cell v =
       { value = v; is_supporting = DLL.empty ""; is_supported = DLL.empty "" }
     in
@@ -47,7 +47,7 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
       Hashtbl.add data_struct v.id (empty_cell v)
     in
     (* Add all values of every domains to the data_struct *)
-    Hashtbl.iter (fun _ dom -> DLL.iter add_compteur dom) graph.domains;
+    Constraint.loop_domains (fun dom -> DLL.iter add_compteur dom) graph;
 
     let should_add v1 v2 =
       let rec aux (v : string DLL.dll_node) =
