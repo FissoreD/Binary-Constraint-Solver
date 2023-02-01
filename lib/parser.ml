@@ -8,14 +8,13 @@ let parse ?(print_inp = false) cnt =
     let name = List.hd s |> String.trim in
     let content = List.tl s in
     let domain = DLL.empty name in
-    List.iter (fun e -> DLL.append e domain |> ignore) content;
+    List.iter ((Fun.flip DLL.append) domain) content;
     Hashtbl.add domains name domain
   in
   let add_constraint = function
     | [ d1; v1; d2; v2 ] ->
         Constraint.add_constraint graph (Hashtbl.find domains d1) v1
           (Hashtbl.find domains d2) v2
-        |> ignore
     | _ -> invalid_arg "Error in input file when parsing constraints"
   in
   let stage = ref 0 in

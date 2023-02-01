@@ -110,6 +110,7 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
       MyPrint.print_color_str "green"
         ("A solution : " ^ to_str_node_list sol ^ " !!")
     in
+    if debug then AF.print_data_struct (get_data_struct ());
     let time = Sys.time () in
     let rec aux sol : string DLL.t list -> unit = function
       | [] ->

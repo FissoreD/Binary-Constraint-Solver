@@ -9,7 +9,7 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
     is_supported : 'a DLL.dll_node DLL.dll_node DLL.t;
   }
 
-  type 'a data_struct = 'a Constraint.graph * (string, 'a cell_type) Hashtbl.t
+  type 'a data_struct = 'a Constraint.graph * (int, 'a cell_type) Hashtbl.t
   (** For each constraint and each value there is a linked list of supports *)
 
   type 'a remove_in_domain = string DLL.dll_node list
@@ -38,13 +38,13 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
   let initialization ?(print = false) (graph : 'a Constraint.graph) :
       'a data_struct =
     let graph = Arc_consistency.clean_domains ~print graph in
-    let data_struct : (string, 'a cell_type) Hashtbl.t = Hashtbl.create 1024 in
+    let data_struct : (int, 'a cell_type) Hashtbl.t = Hashtbl.create 1024 in
     let domain_list = Hashtbl.to_seq_values graph.domains |> List.of_seq in
     let empty_cell v =
       { value = v; is_supporting = DLL.empty ""; is_supported = DLL.empty "" }
     in
-    let add_compteur v =
-      Hashtbl.add data_struct (Arc_consistency.make_name v) (empty_cell v)
+    let add_compteur (v : 'a DLL.dll_node) =
+      Hashtbl.add data_struct v.id (empty_cell v)
     in
     (* Add all values of every domains to the data_struct *)
     Hashtbl.iter (fun _ dom -> DLL.iter add_compteur dom) graph.domains;
@@ -55,8 +55,7 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
         else if
           DLL.exist
             (fun e -> e.value == v2)
-            (Hashtbl.find data_struct (Arc_consistency.make_name v))
-              .is_supporting
+            (Hashtbl.find data_struct v.id).is_supporting
         then false
         else match v.next with None -> true | Some e -> aux e
       in
@@ -68,24 +67,23 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
       | d1 :: tl ->
           DLL.iter
             (fun v1 ->
-              let dom1 =
-                Hashtbl.find data_struct (Arc_consistency.make_name v1)
-              in
+              let dom1 = Hashtbl.find data_struct v1.id in
               List.iter
                 (fun d2 ->
                   DLL.iter
                     (fun v2 ->
                       if graph.relation v1 v2 then (
-                        let dom2 =
-                          Hashtbl.find data_struct
-                            (Arc_consistency.make_name v2)
-                        in
-                        (if should_add v2 v1 then
-                         let x = DLL.append v1 dom2.is_supporting in
-                         DLL.append x dom1.is_supported |> ignore);
-                        if should_add v1 v2 then
-                          let x = DLL.append v2 dom1.is_supporting in
-                          DLL.append x dom2.is_supported |> ignore))
+                        let dom2 = Hashtbl.find data_struct v2.id in
+                        if should_add v2 v1 then (
+                          DLL.append v1 dom2.is_supporting;
+                          DLL.append
+                            (DLL.get_last dom2.is_supporting)
+                            dom1.is_supported);
+                        if should_add v1 v2 then (
+                          DLL.append v2 dom1.is_supporting;
+                          DLL.append
+                            (DLL.get_last dom1.is_supporting)
+                            dom2.is_supported)))
                     d2)
                 tl)
             d1;
@@ -100,16 +98,14 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
   let revise (node_to_remove : 'a DLL.dll_node)
       ((graph, data_struct) as g : 'a data_struct) : 'a stack_operation =
     (* Look for the support to remove in data_struct *)
-    match
-      Hashtbl.find_opt data_struct (Arc_consistency.make_name node_to_remove)
-    with
+    match Hashtbl.find_opt data_struct node_to_remove.id with
     | None -> raise (Not_in_support "AC_6")
     | Some node ->
         let removed_in_domain = ref [] in
         let appended_in_support = ref [] in
         let removed_from_is_supported = ref [] in
         (* We remove the support *)
-        Hashtbl.remove data_struct (Arc_consistency.make_name node.value);
+        Hashtbl.remove data_struct node.value.id;
         (* Remove node_to_remove from all the node supporting it *)
         DLL.iter_value
           (fun value ->
@@ -125,11 +121,10 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
             | None -> removed_in_domain := current :: !removed_in_domain
             | Some e ->
                 (* Here there exists a next of node_to_remove linked to current *)
-                let dom =
-                  Hashtbl.find data_struct (Arc_consistency.make_name e)
-                in
-                let appended = DLL.append current dom.is_supporting in
-                appended_in_support := appended :: !appended_in_support)
+                let dom = Hashtbl.find data_struct e.id in
+                DLL.append current dom.is_supporting;
+                appended_in_support :=
+                  DLL.get_last dom.is_supporting :: !appended_in_support)
           node.is_supporting;
         {
           removed_in_domain = !removed_in_domain;
@@ -150,9 +145,7 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
         _;
       } =
     List.iter DLL.insert removed_from_is_supported;
-    Hashtbl.add (snd data_struct)
-      (Arc_consistency.make_name removed_in_support.value)
-      removed_in_support;
+    Hashtbl.add (snd data_struct) removed_in_support.value.id removed_in_support;
     List.iter DLL.remove appended_in_support;
     DLL.insert input
 end

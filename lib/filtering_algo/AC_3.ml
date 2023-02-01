@@ -12,7 +12,7 @@ module AC_3 : Arc_consistency.Arc_consistency = struct
 
   type 'a data_struct = 'a Constraint.graph
 
-  let print_data_struct = ignore
+  let print_data_struct _ = print_endline "No data structure for AC-3"
   let initialization = Arc_consistency.clean_domains
 
   (** For each value v in d1 it should exist a support in d2, otherwise we remove v from d1,

@@ -45,7 +45,7 @@ let add_constraint (support : 'a graph) d1 v1 d2 v2 =
     | None ->
         Hashtbl.add support.constraint_binding d1.name (DLL.singleton "" d2);
         Hashtbl.add support.domains d1.name d1
-    | Some e -> DLL.add_if_absent (fun e -> e.value == d2) d2 e |> ignore
+    | Some e -> DLL.add_if_absent (fun e -> e.value == d2) d2 e
   in
   let get d v = Option.get (DLL.find_by_value v d) in
   let a, b = (get d1 v1, get d2 v2) in
@@ -77,3 +77,12 @@ let print_domains f { domains; _ } =
 
 let print_string_domains ?(is_rev = false) =
   print_domains (print_string_domain ~is_rev)
+
+let find_vard_by_id { domains; _ } id =
+  let res = ref None in
+  Hashtbl.iter
+    (fun _ dom ->
+      res := DLL.find (fun v -> v.id = id) dom;
+      if !res <> None then raise Not_found)
+    domains;
+  Option.get !res

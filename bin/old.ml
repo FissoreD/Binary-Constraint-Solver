@@ -97,7 +97,6 @@ let _ac_6 () =
   let supp = AC_6.initialization support in
   AC_6.print_data_struct supp;
 
-  (* invalid_arg "STOP" |> ignore; *)
   List.iter
     (fun e ->
       let removed1 = Option.get (DLL.remove_by_value e d2) in

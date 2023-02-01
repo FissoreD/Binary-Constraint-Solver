@@ -1,9 +1,12 @@
 exception AlreadyIn
 exception AlreadyOut
 
+let id = ref 0
+
 (* The type of the double linked list (ddl) *)
 type 'e dll_node = {
   value : 'e;
+  id : int;
   dll_father : 'e t;
   mutable prev : 'e dll_node option;
   mutable next : 'e dll_node option;
@@ -11,25 +14,27 @@ type 'e dll_node = {
 }
 
 and 'e sentinel = { mutable first : 'e dll_node; mutable last : 'e dll_node }
-and 'e t = { name : string; content : 'e sentinel option ref }
+and 'e t = { name : string; mutable content : 'e sentinel option }
 
-let empty name = { name; content = ref None }
-let get d = Option.get !d
-let is_empty d = !(d.content) = None
+let empty name = { name; content = None }
+let get d = Option.get d
+let get_first d = (get d.content).first
+let get_last d = (get d.content).last
+let is_empty d = d.content = None
 
 let make_node value dll_father =
-  { is_in = true; value; prev = None; next = None; dll_father }
+  incr id;
+  { is_in = true; value; prev = None; next = None; dll_father; id = !id }
 
 let add_after_node current node =
   if current.dll_father != node.dll_father then
-    invalid_arg "Can't add after, in nodes with differet fathers";
+    invalid_arg "Can't add after, in nodes with different fathers";
   node.prev <- Some current;
   node.next <- current.next;
   current.next <- Some node;
-  (match node.next with
-  | None -> (Option.get !(node.dll_father.content)).last <- node
-  | Some e -> e.prev <- Some node);
-  node
+  match node.next with
+  | None -> (get node.dll_father.content).last <- node
+  | Some e -> e.prev <- Some node
 
 let add_after current value =
   let value = make_node value current.dll_father in
@@ -39,43 +44,38 @@ let add_before_node current node =
   node.next <- Some current;
   node.prev <- current.prev;
   current.prev <- Some node;
-  (match node.prev with
-  | None -> (Option.get !(node.dll_father.content)).first <- node
-  | Some e -> e.next <- Some node);
-  node
+  match node.prev with
+  | None -> (get node.dll_father.content).first <- node
+  | Some e -> e.next <- Some node
 
 let add_before current value =
   let value = make_node value current.dll_father in
   add_before_node current value
 
 let append e dll =
-  match !(dll.content) with
+  match dll.content with
   | None ->
       let node = make_node e dll in
-      dll.content := Some { first = node; last = node };
-      node
+      dll.content <- Some { first = node; last = node }
   | Some { last; _ } -> add_after last e
 
 let append_node node dll =
   match !dll with
-  | None ->
-      dll := Some { first = node; last = node };
-      node
+  | None -> dll := Some { first = node; last = node }
   | Some { last; _ } -> add_after_node last node
 
 let prepend e dll =
-  match !(dll.content) with
+  match dll.content with
   | None ->
       let node = make_node e dll in
-      dll.content := Some { first = node; last = node };
-      node
+      dll.content <- Some { first = node; last = node }
   | Some { first; _ } -> add_before first e
 
 let insert e =
   if e.is_in then raise AlreadyIn;
   e.is_in <- true;
-  match !(e.dll_father.content) with
-  | None -> e.dll_father.content := Some { first = e; last = e }
+  match e.dll_father.content with
+  | None -> e.dll_father.content <- Some { first = e; last = e }
   | Some father -> (
       match (e.prev, e.next) with
       | None, None ->
@@ -93,30 +93,28 @@ let insert e =
 
 let singleton name s =
   let dom = empty name in
-  append s dom |> ignore;
+  append s dom;
   dom
 
 let remove_after current =
   match current.next with
-  | None -> None
-  | Some removed ->
+  | None -> ()
+  | Some removed -> (
       current.next <- removed.next;
-      (match removed.next with None -> () | Some e -> e.prev <- Some current);
-      Some removed
+      match removed.next with None -> () | Some e -> e.prev <- Some current)
 
 let remove_before current =
   match current.prev with
-  | None -> None
-  | Some removed ->
+  | None -> ()
+  | Some removed -> (
       current.prev <- removed.prev;
-      (match removed.prev with None -> () | Some e -> e.next <- Some current);
-      Some removed
+      match removed.prev with None -> () | Some e -> e.next <- Some current)
 
 let iter_gen is_rev f d =
   let get n = if is_rev then n.prev else n.next in
   if is_empty d then ()
   else
-    let e = Option.get !(d.content) in
+    let e = Option.get d.content in
     let rec aux current =
       f current;
       match get current with None -> () | Some e -> aux e
@@ -126,7 +124,7 @@ let iter_gen is_rev f d =
 let map f d =
   if is_empty d then []
   else
-    let e = Option.get !(d.content) in
+    let e = Option.get d.content in
     let rec aux current =
       f current :: (match current.next with None -> [] | Some e -> aux e)
     in
@@ -141,28 +139,16 @@ let rec find_from p (t : 'a dll_node) =
   if p t then Some t
   else match t.next with None -> None | Some e -> find_from p e
 
+let find_from_next p (t : 'a dll_node) =
+  match t.next with None -> None | Some t -> find_from p t
+
 let find p (t : 'a t) =
-  match !(t.content) with
-  | None -> None
-  | Some { first; _ } -> find_from p first
+  match t.content with None -> None | Some { first; _ } -> find_from p first
 
 let find_assoc p (t : 'a t) = find (fun e -> p (fst e.value)) t
-let add_if_absent p e d = match find p d with None -> append e d | Some e -> e
-
-let add_assoc k value d =
-  match find_assoc (( == ) k) d with
-  | None ->
-      Printf.printf "Adding %s to %s\n" value.name k.name;
-      let nd = empty "" in
-      append (k, nd) d |> ignore;
-      append value nd |> ignore
-  | Some nd ->
-      if find (fun e -> e.value == value) (snd nd.value) = None then
-        Printf.printf "Adding %s to %s\n" value.name k.name;
-      add_if_absent (fun e -> e.value == value) value (snd nd.value) |> ignore
 
 let find_all p (t : 'a t) =
-  match !(t.content) with
+  match t.content with
   | None -> []
   | Some { first; _ } ->
       let rec aux e acc =
@@ -172,11 +158,28 @@ let find_all p (t : 'a t) =
       aux first []
 
 let find_by_value (value : 'a) = find (fun e -> e.value = value)
-let exist p (t : 'a t) = find p t <> None
-let not_exist p (t : 'a t) = find p t = None
+
+let rec exists_from p (t : 'a dll_node) =
+  p t || match t.next with None -> false | Some e -> exists_from p e
+
+let exist p (t : 'a t) =
+  match t.content with
+  | None -> false
+  | Some { first; _ } -> exists_from p first
+
+let not_exist p (t : 'a t) = not (exist p t)
+let add_if_absent p e d = if not_exist p d then append e d
+
+let add_assoc k value d =
+  match find_assoc (( == ) k) d with
+  | None ->
+      let nd = empty "" in
+      append (k, nd) d;
+      append value nd
+  | Some nd -> add_if_absent (fun e -> e.value == value) value (snd nd.value)
 
 let forall p (t : 'a t) =
-  match !(t.content) with
+  match t.content with
   | None -> false
   | Some { first; _ } ->
       let rec aux t =
@@ -191,14 +194,14 @@ let remove (node : 'a dll_node) =
   node.is_in <- false;
   let dom1 = get node.dll_father.content in
   match (node.prev, node.next) with
-  | None, None -> node.dll_father.content := None
+  | None, None -> node.dll_father.content <- None
   | Some prev, None ->
-      remove_after prev |> ignore;
+      remove_after prev;
       dom1.last <- prev
   | None, Some succ ->
-      remove_before succ |> ignore;
+      remove_before succ;
       dom1.first <- succ
-  | Some prev, _ -> remove_after prev |> ignore
+  | Some prev, _ -> remove_after prev
 
 let remove_by_value (value : 'a) (dll : 'a t) =
   match find (fun e -> e.value = value) dll with
@@ -215,13 +218,13 @@ let of_list name l : 'a t =
   let rec aux = function
     | [] -> dll
     | hd :: tl ->
-        append hd dll |> ignore;
+        append hd dll;
         aux tl
   in
   aux l
 
 let to_list (d : 'a t) =
-  match !(d.content) with
+  match d.content with
   | None -> []
   | Some e ->
       let rec aux { value; next; _ } =
