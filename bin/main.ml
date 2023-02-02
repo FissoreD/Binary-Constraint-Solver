@@ -9,6 +9,7 @@ let () =
   let print_inp = ref false in
   let one_sol = ref false in
   let queens = ref (-1) in
+  let allInt = ref (-1) in
   let count_only = ref false in
   let debug = ref false in
   let speclist =
@@ -21,7 +22,8 @@ let () =
         ("-f", Set_string path, " Set the input file");
         ("-first", Set one_sol, " Finds only the first solution if it exists");
         ("-queens", Set_int queens, " Set the size of the queen solver");
-        ( "-count-only",
+        ("-all-int", Set_int allInt, " Set the size of the queen solver");
+        ( "-only-sol",
           Set count_only,
           " Only print the number of fails and solutions" );
         ("-d", Set debug, " Debug mode");
@@ -44,10 +46,12 @@ let () =
   let module M = (val m : Arc_consistency.Arc_consistency) in
   let module Filtr = Solver.Make (M) in
   let graph =
-    if !queens > 4 then Queens.build_graph ~print_inp:!print_inp !queens
+    if !allInt > 2 then
+      AllIntervalSeries.build_graph ~print_inp:!print_inp !allInt
+    else if !queens > 4 then Queens.build_graph ~print_inp:!print_inp !queens
     else Parser.parse_file ~print_inp:!print_inp !path
   in
 
-  Filtr.initialization graph;
+  Filtr.initialization ~verbose:!verbose graph;
   Filtr.find_solution ~debug:!debug ~count_only:!count_only ~verbose:!verbose
     ~one_sol:!one_sol ()

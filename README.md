@@ -3,13 +3,19 @@
 command example: 
 
 run ac3 over all input graphs:
-  `for f in ./graphs/*; do echo $f; dune exec -- main -f $f -ac 3 | tail -n 3; done`
+  `for f in ./graphs/*; do echo $f; ./_build/default/bin/main.exe -f $f -ac 3 | tail -n 3; done`
 
 run all filter algos on input_4:
-  `algo=(3 4 6 2001); for i in ${algo[@]}; do echo "$i";  dune exec -- main -f graphs/input_4.txt -ac $i | tail -n 3; done`
+  `algo=(3 4 6 2001); for i in ${algo[@]}; do echo "$i";  ./_build/default/bin/main.exe -f graphs/input_4.txt -ac $i | tail -n 3; done`
 
 run all filter algos on every input graph:
-  `for graphs in $(ls ./graphs/*.txt); do algo=(3 4 6 2001); for i in ${algo[@]}; do echo "$i";  dune exec -- main -f $graphs -ac $i -count-only; done; done`
+  `for graphs in $(ls ./graphs/*.txt); do algo=(3 4 6 2001); for i in ${algo[@]}; do echo "$i";  ./_build/default/bin/main.exe -f $graphs -ac $i -only-sol; done; done`
 
-run queen algo from 3 to 8 for all algos: 
-  `for i in {3..8}; do echo "Queen number : $i"; algo=(3 4 6 2001); for al in ${algo[@]}; do echo "Running AC-$al"; dune exec -- main -queens $i -ac $al -count-only; done; done`
+run one ac-3 on queen 3:
+  `dune exec -- main -queens 3 -ac 3 -only-sol`
+
+run queen algo from 3 to 11 for all algos: 
+  `dune build; for i in {3..11}; do echo "Queen number : $i"; algo=(3 4 6 2001); for al in ${algo[@]}; do echo "Running AC-$al"; ./_build/default/bin/main.exe -queens $i -ac $al -only-sol; done; done`
+
+run allIntervalSeries with n from 3 to 11:
+  `dune build; for i in {3..11}; do echo "Interval Series with n : $i"; algo=(3 4 2001 6); for al in ${algo[@]}; do echo "Running AC-$al"; ./_build/default/bin/main.exe -all-int $i -ac $al -only-sol; done; done`

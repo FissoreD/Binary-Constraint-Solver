@@ -14,7 +14,12 @@ module type M = sig
   val remove_by_value : ?verbose:bool -> string -> string -> unit
   val propagation_remove_by_value : ?verbose:bool -> string -> string -> unit
   val propagation_select_by_value : ?verbose:bool -> string -> string -> unit
+  val print_data_struct : unit -> unit
 end
+
+let debug ?(msg = "") () =
+  print_endline ("Debugging : " ^ msg);
+  read_line () |> ignore
 
 module Make (AF : Arc_consistency.Arc_consistency) : M = struct
   module DLL = DoublyLinkedList
@@ -55,11 +60,17 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
     Constraint.print_string_domains ~is_rev (get_graph ())
 
   let print_list_nodes l = print_endline (to_str_node_list l)
+  let print_data_struct () = AF.print_data_struct (get_data_struct ())
 
   let initialization ?(verbose = false) graph' =
     support := Some (AF.initialization graph');
     graph := Some graph';
-    if verbose then AF.print_data_struct (get_data_struct ())
+    if verbose then (
+      print_endline "The data structure is:";
+      AF.print_data_struct (get_data_struct ());
+      print_endline "The domains are";
+      print_domains ();
+      print_endline "-----------------------------")
 
   let remove_by_node ?(verbose = false) (node : 'a DLL.dll_node) =
     if node.is_in then (
@@ -76,12 +87,14 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
         print_list_nodes (AF.get_to_remove unsupported));
       if DLL.is_empty node.dll_father then raise Empty_domain)
 
-  let rec propagation_remove_by_node ?(verbose = false) node =
-    remove_by_node ~verbose node;
-    let list_to_remove = Stack.top stack_op |> Option.get in
-    List.iter
-      (propagation_remove_by_node ~verbose)
-      (AF.get_to_remove list_to_remove)
+  let rec propagation_remove_by_node ?(verbose = false) (node : 'a DLL.dll_node)
+      =
+    if node.is_in then (
+      remove_by_node ~verbose node;
+      let list_to_remove = Stack.top stack_op |> Option.get in
+      List.iter
+        (propagation_remove_by_node ~verbose)
+        (AF.get_to_remove list_to_remove))
 
   let propagation_select_by_node ?(verbose = false) (v : 'a DLL.dll_node) =
     if verbose then

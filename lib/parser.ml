@@ -13,8 +13,9 @@ let parse ?(print_inp = false) cnt =
   in
   let add_constraint = function
     | [ d1; v1; d2; v2 ] ->
-        Constraint.add_constraint graph (Hashtbl.find domains d1) v1
-          (Hashtbl.find domains d2) v2
+        let d1 = Hashtbl.find domains d1 in
+        let d2 = Hashtbl.find domains d2 in
+        Constraint.add_constraint graph d1 v1 d2 v2
     | _ -> invalid_arg "Error in input file when parsing constraints"
   in
   let stage = ref 0 in
