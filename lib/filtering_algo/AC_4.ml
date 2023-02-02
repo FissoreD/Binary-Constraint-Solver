@@ -16,11 +16,7 @@ module AC_4 : Arc_consistency.Arc_consistency = struct
   type 'a data_struct = ('a DLL.dll_node * 'a cell_type) MapInt.t
   (** For each constraint and each value there is a linked list of supports  *)
 
-  type 'a stack_operation = {
-    to_remove_in_domain : 'a remove_in_domain;
-    to_remove_sibling : 'a double_connection DLL.dll_node list;
-    input : 'a DLL.dll_node;
-  }
+  type 'a stack_operation = 'a double_connection DLL.dll_node list
 
   let loop_into_map f m = MapStr.iter (fun _ v -> DLL.iter_value f v) m
 
@@ -67,26 +63,19 @@ module AC_4 : Arc_consistency.Arc_consistency = struct
   let revise (input : 'a DLL.dll_node) (data_struct : 'a data_struct) =
     let _, supported = MapInt.find input.id data_struct in
     let to_remove_in_domain = ref [] in
-    let to_remove_sibling = ref [] in
+    let removed_in_support = ref [] in
     loop_into_map
       (fun ({ node; assoc } : 'a double_connection) ->
         let sibling = Option.get assoc in
         DLL.remove sibling;
-        to_remove_sibling := sibling :: !to_remove_sibling;
+        removed_in_support := sibling :: !removed_in_support;
         if DLL.is_empty sibling.dll_father then
           to_remove_in_domain := node :: !to_remove_in_domain)
       supported;
-    {
-      to_remove_in_domain = !to_remove_in_domain;
-      to_remove_sibling = !to_remove_sibling;
-      input;
-    }
+    (!removed_in_support, !to_remove_in_domain)
 
-  let back_track { to_remove_sibling; input; _ } =
-    List.iter DLL.insert to_remove_sibling;
-    DLL.insert input
-
-  let get_to_remove { to_remove_in_domain; _ } = to_remove_in_domain
+  let back_track removed_in_suport = List.iter DLL.insert removed_in_suport
+  (* DLL.insert input *)
 end
 
 include AC_4

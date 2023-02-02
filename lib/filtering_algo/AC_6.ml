@@ -10,14 +10,8 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
 
   type 'a data_struct = 'a Constraint.graph * (int, 'a cell_type) Hashtbl.t
   type 'a remove_in_domain = string DLL.dll_node list
+  type 'a stack_operation = 'a DLL.dll_node DLL.dll_node list
 
-  type 'a stack_operation = {
-    removed_in_domain : 'a remove_in_domain;
-    appended_in_support : 'a DLL.dll_node DLL.dll_node list;
-    input : 'a DLL.dll_node;
-  }
-
-  let get_to_remove { removed_in_domain; _ } = removed_in_domain
   let loop_into_map f m = Hashtbl.iter (fun _ v -> DLL.iter f v) m
 
   let print_data_struct ((_, x) : 'a data_struct) : unit =
@@ -66,7 +60,7 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
     (graph, data_struct)
 
   let revise (node_to_remove : string DLL.dll_node)
-      ((graph, data_struct) : 'a data_struct) : 'a stack_operation =
+      ((graph, data_struct) : 'a data_struct) =
     match Hashtbl.find_opt data_struct node_to_remove.id with
     | None -> raise (Not_in_support "AC_6")
     | Some node ->
@@ -90,15 +84,9 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
                 DLL.append current d;
                 appended_in_support := DLL.get_last d :: !appended_in_support)
           node.is_supporting;
-        {
-          removed_in_domain = !removed_in_domain;
-          appended_in_support = !appended_in_support;
-          input = node_to_remove;
-        }
+        (!appended_in_support, !removed_in_domain)
 
-  let back_track { appended_in_support; input; _ } =
-    List.iter DLL.remove appended_in_support;
-    DLL.insert input
+  let back_track appended_in_support = List.iter DLL.remove appended_in_support
 end
 
 include AC_6

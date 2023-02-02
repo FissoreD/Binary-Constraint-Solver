@@ -30,12 +30,14 @@ let _ac_3 () =
   let supp = AC_3.initialization graph in
   AC_3.print_data_struct supp;
 
-  let filtered = AC_3.revise (DLL.remove_by_value "4" d2 |> Option.get) supp in
+  let filtered, unsopported =
+    AC_3.revise (DLL.remove_by_value "4" d2 |> Option.get) supp
+  in
 
   Constraint.print_string_domains graph;
 
   print_string "removed = ";
-  print_list_nodes (AC_3.get_to_remove filtered);
+  print_list_nodes unsopported;
 
   print_endline "Backtrack:";
   AC_3.back_track filtered;
@@ -55,10 +57,10 @@ let _ac_4 () =
     (fun e ->
       let removed1 = Option.get (DLL.remove_by_value e d2) in
 
-      let removed_list = AC_4.revise removed1 supp in
+      let removed_list, unsopported = AC_4.revise removed1 supp in
       print_string "removed: ";
-      print_list_nodes (AC_4.get_to_remove removed_list);
-      List.iter DLL.remove (AC_4.get_to_remove removed_list);
+      print_list_nodes unsopported;
+      List.iter DLL.remove unsopported;
       Queue.push removed_list stack)
     [ "4" ];
 
@@ -66,10 +68,10 @@ let _ac_4 () =
     (fun e ->
       let removed1 = Option.get (DLL.remove_by_value e d1) in
 
-      let removed_list = AC_4.revise removed1 supp in
+      let removed_list, unsupported = AC_4.revise removed1 supp in
       print_string "removed: ";
-      print_list_nodes (AC_4.get_to_remove removed_list);
-      List.iter DLL.remove (AC_4.get_to_remove removed_list);
+      print_list_nodes unsupported;
+      List.iter DLL.remove unsupported;
       Queue.push removed_list stack)
     [];
 
@@ -101,20 +103,20 @@ let _ac_6 () =
     (fun e ->
       let removed1 = Option.get (DLL.remove_by_value e d2) in
 
-      let removed_list = AC_6.revise removed1 supp in
+      let _, unsupported = AC_6.revise removed1 supp in
       print_string "removed: ";
-      print_list_nodes (AC_6.get_to_remove removed_list);
-      List.iter DLL.remove (AC_6.get_to_remove removed_list))
+      print_list_nodes unsupported;
+      List.iter DLL.remove unsupported)
     [ "0"; "2" ];
 
   List.iter
     (fun e ->
       let removed1 = Option.get (DLL.remove_by_value e d1) in
 
-      let removed_list = AC_6.revise removed1 supp in
+      let _, unsupported = AC_6.revise removed1 supp in
       print_string "removed: ";
-      print_list_nodes (AC_6.get_to_remove removed_list);
-      List.iter DLL.remove (AC_6.get_to_remove removed_list))
+      print_list_nodes unsupported;
+      List.iter DLL.remove unsupported)
     [ "2" ];
 
   AC_6.print_data_struct supp;

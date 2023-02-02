@@ -26,6 +26,7 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
 
   exception Empty_domain
 
+  let no_more_supported = ref []
   let time_of_backtracks = ref 0.
   let time_of_revise = ref 0.
   let support = ref None
@@ -33,16 +34,19 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
   let get_data_struct () = Option.get !support
   let get_graph () = Option.get !graph
 
-  let stack_op : 'a AF.stack_operation option Stack.t =
+  type 'a stack_type = ('a AF.stack_operation * 'a DLL.dll_node) option Stack.t
+
+  (* The internal operation of the filtering algos *)
+  let internal_op : 'a stack_type =
     let stack = Stack.create () in
     Stack.push None stack;
     stack
 
-  let stack_remove_nb : 'a AF.stack_operation option Stack.t = Stack.create ()
+  let backtrack_mem : 'a stack_type = Stack.create ()
 
   (* let counter_remove_prov = ref 0 *)
-  let add_stack q = Stack.push (Some q) stack_op
-  let get_op () = Option.get (Stack.pop stack_op)
+  let add_stack q = Stack.push (Some q) internal_op
+  let get_op () = Option.get (Stack.pop internal_op)
 
   let to_str_node_list l =
     let to_str (e : 'a DLL.dll_node) =
@@ -76,40 +80,40 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
     if node.is_in then (
       DLL.remove node;
       let t = Sys.time () in
-      let unsupported = AF.revise node (get_data_struct ()) in
+      let stack_op, unsupported = AF.revise node (get_data_struct ()) in
       time_of_revise := Sys.time () -. t +. !time_of_revise;
-      add_stack @@ unsupported;
+      add_stack (stack_op, node);
+      no_more_supported := unsupported;
       if verbose then (
         MyPrint.print_color_str "red"
           (Printf.sprintf " * Removing %s from %s" node.value
              node.dll_father.name);
         print_string "List of values having no more support = ";
-        print_list_nodes (AF.get_to_remove unsupported));
+        print_list_nodes unsupported);
       if DLL.is_empty node.dll_father then raise Empty_domain)
 
   let rec propagation_remove_by_node ?(verbose = false) (node : 'a DLL.dll_node)
       =
     if node.is_in then (
       remove_by_node ~verbose node;
-      let list_to_remove = Stack.top stack_op |> Option.get in
-      List.iter
-        (propagation_remove_by_node ~verbose)
-        (AF.get_to_remove list_to_remove))
+      List.iter (propagation_remove_by_node ~verbose) !no_more_supported)
 
   let propagation_select_by_node ?(verbose = false) (v : 'a DLL.dll_node) =
     if verbose then
       MyPrint.print_color_str "blue"
         (Printf.sprintf "--> Selecting %s from %s" v.value v.dll_father.name);
-    Stack.push (Stack.top stack_op) stack_remove_nb;
+    Stack.push (Stack.top internal_op) backtrack_mem;
     DLL.iter
       (fun v' -> if v' != v then propagation_remove_by_node ~verbose v')
       v.dll_father
 
   let back_track () =
-    let top = Stack.pop stack_remove_nb in
+    let top = Stack.pop backtrack_mem in
     let t = Sys.time () in
-    while top != Stack.top stack_op do
-      AF.back_track (get_op ())
+    while top != Stack.top internal_op do
+      let internal_op, node = get_op () in
+      AF.back_track internal_op;
+      DLL.insert node
     done;
     time_of_backtracks := Sys.time () -. t +. !time_of_backtracks
 

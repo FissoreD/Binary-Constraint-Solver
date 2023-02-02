@@ -4,12 +4,7 @@ module AC_3 : Arc_consistency.Arc_consistency = struct
   module DLL = DoublyLinkedList
 
   type 'a remove_in_domain = string DLL.dll_node list
-
-  type 'a stack_operation = {
-    to_remove_in_domain : 'a DLL.dll_node list;
-    input : 'a DLL.dll_node;
-  }
-
+  type 'a stack_operation = unit
   type 'a data_struct = 'a Constraint.graph
 
   let print_data_struct _ = print_endline "No data structure for AC-3"
@@ -22,16 +17,12 @@ module AC_3 : Arc_consistency.Arc_consistency = struct
     let to_remove_in_domain : 'a DLL.dll_node list ref = ref [] in
     DLL.iter_value
       (DLL.iter (fun current ->
-           let remove_current =
-             DLL.not_exist (fun e -> support.relation current e) d1.dll_father
-           in
-           if remove_current then
+           if DLL.not_exist (support.relation current) d1.dll_father then
              to_remove_in_domain := current :: !to_remove_in_domain))
       (Constraint.get_constraint_binding support d1.dll_father);
-    { input = d1; to_remove_in_domain = !to_remove_in_domain }
+    ((), !to_remove_in_domain)
 
-  let back_track { input; _ } = if not input.is_in then DLL.insert input
-  let get_to_remove { to_remove_in_domain; _ } = to_remove_in_domain
+  let back_track _ = ()
 end
 
 include AC_3

@@ -10,12 +10,7 @@ module AC_2001 : Arc_consistency.Arc_consistency = struct
 
   type 'a last = (int, 'a map_value) Hashtbl.t
   type 'a data_struct = { last : 'a last; graph : 'a Constraint.graph }
-
-  type 'a stack_operation = {
-    to_remove_in_domain : 'a remove_in_domain;
-    undo_assoc : 'a DLL.dll_node DLL.dll_node list;
-    input : 'a DLL.dll_node;
-  }
+  type 'a stack_operation = 'a DLL.dll_node DLL.dll_node list
 
   let print_data_struct ({ last; _ } : 'a data_struct) =
     Hashtbl.iter
@@ -29,8 +24,7 @@ module AC_2001 : Arc_consistency.Arc_consistency = struct
         print_endline "")
       last
 
-  let initialization ?(print = false) (graph : 'a Constraint.graph) :
-      'a data_struct =
+  let initialization ?(print = false) (graph : 'a Constraint.graph) =
     let exception Found in
     let graph = Arc_consistency.clean_domains ~print graph in
     let last : string last = Hashtbl.create 1024 in
@@ -79,17 +73,9 @@ module AC_2001 : Arc_consistency.Arc_consistency = struct
                  undo_assoc :=
                    DLL.get_first last_value.dll_father :: !undo_assoc))
       (Constraint.get_constraint_binding graph v1.dll_father);
-    {
-      input = v1;
-      to_remove_in_domain = !to_remove_in_domain;
-      undo_assoc = !undo_assoc;
-    }
+    (!undo_assoc, !to_remove_in_domain)
 
-  let back_track { input; undo_assoc; _ } =
-    List.iter DLL.remove undo_assoc;
-    DLL.insert input
-
-  let get_to_remove { to_remove_in_domain; _ } = to_remove_in_domain
+  let back_track undo_assoc = List.iter DLL.remove undo_assoc
 end
 
 include AC_2001

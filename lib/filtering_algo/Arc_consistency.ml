@@ -15,10 +15,11 @@ module type Arc_consistency = sig
     ?print:bool -> string Constraint.graph -> string data_struct
 
   val revise :
-    string DLL.dll_node -> string data_struct -> string stack_operation
+    string DLL.dll_node ->
+    string data_struct ->
+    string stack_operation * string remove_in_domain
 
   val back_track : string stack_operation -> unit
-  val get_to_remove : string stack_operation -> string remove_in_domain
 end
 
 let init_remove print (v : 'a DLL.dll_node) =

@@ -9,9 +9,9 @@ run all filter algos on input_4:
   `algo=(3 4 6 2001); for i in ${algo[@]}; do echo "$i";  ./_build/default/bin/main.exe -f graphs/input_4.txt -ac $i | tail -n 3; done`
 
 run all filter algos on every input graph:
-  `for graphs in $(ls ./graphs/*.txt); do algo=(3 4 6 2001); for i in ${algo[@]}; do echo "$i";  ./_build/default/bin/main.exe -f $graphs -ac $i -only-sol; done; done`
+  `for graph in $(ls ./graphs/*.txt); do echo "$graph"; algo=(3 4 6 2001); for i in ${algo[@]}; do echo "$i";  ./_build/default/bin/main.exe -f $graph -ac $i -only-sol; done; done`
 
-run one ac-3 on queen 3:
+run ac-3 on queen 3:
   `dune exec -- main -queens 3 -ac 3 -only-sol`
 
 run queen algo from 3 to 11 for all algos: 
