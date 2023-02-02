@@ -30,8 +30,7 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
         print_endline "")
       x
 
-  let initialization ?(print = false) (graph : 'a Constraint.graph) :
-      'a data_struct =
+  let initialization ?(print = false) graph : 'a data_struct =
     let graph = Arc_consistency.clean_domains ~print graph in
     let data_struct : (int, 'a cell_type) Hashtbl.t = Hashtbl.create 1024 in
     let empty_cell v = { value = v; is_supporting = Hashtbl.create 2048 } in
