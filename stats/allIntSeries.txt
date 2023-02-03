@@ -1,3 +1,4 @@
+All Interval Series
 All Interval Series for : 3          
 Running AC-3
 ------------------------------
@@ -263,7 +264,6 @@ Time of backtracks: 1.653579
 Time of revise: 33.349205
 ------------------------------
 All Interval Series for : 11
-All Interval Series
 Running AC-3
 ------------------------------
 The number of fails is 502014
