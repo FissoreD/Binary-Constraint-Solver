@@ -1,0 +1,22 @@
+\begin{figure}
+  % [!htb]
+  \centering
+  \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3cm, scale = 0.6,transform shape]
+
+    \node[state] (A) {$\n_1$};
+    \node[state] (C) [below of=A] {$\n_3$};
+    \node[state] (D) [right of=C] {$\n_4$};
+    \node[state] (B) [right of=A] {$\n_2$};
+
+    \path
+    (A) edge [right, bend left=20]  node {$3$} (C)
+    (A) edge   node {$-4$} (B)
+    (C) edge [right, bend left=20]  node {$2$} (A)
+    (C) edge   node {$4$} (B)
+    (D) edge   node {$1$} (C)
+    (B) edge   node {$2$} (D);
+
+  \end{tikzpicture}
+  \caption{A directed weighted graph example}
+  \label{fig:digraph}
+\end{figure}
