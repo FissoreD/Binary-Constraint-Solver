@@ -157,17 +157,29 @@ let find_all p (t : 'a t) =
       in
       aux first []
 
-let find_by_value (value : 'a) = find (fun e -> e.value = value)
+let find_by_value (value : 'a) e =
+  let res = find (fun e -> e.value = value) e in
+  Option.get res
 
 let rec exists_from p (t : 'a dll_node) =
   p t || match t.next with None -> false | Some e -> exists_from p e
+
+let rec exists_from_by_value (p : 'a -> bool) (t : 'a dll_node) =
+  p t.value
+  || match t.next with None -> false | Some e -> exists_from_by_value p e
 
 let exist p (t : 'a t) =
   match t.content with
   | None -> false
   | Some { first; _ } -> exists_from p first
 
+let exist_by_balue p (t : 'a t) =
+  match t.content with
+  | None -> false
+  | Some { first; _ } -> exists_from_by_value p first
+
 let not_exist p (t : 'a t) = not (exist p t)
+let not_exist_by_value p (t : 'a t) = not (exist_by_balue p t)
 let add_if_absent p e d = if not_exist p d then append e d
 
 let add_assoc k value d =
@@ -232,4 +244,7 @@ let to_list (d : 'a t) =
       in
       aux e.first
 
-let length dll = List.length (to_list dll)
+let length dll =
+  let l = ref 0 in
+  iter (fun _ -> incr l) dll;
+  !l

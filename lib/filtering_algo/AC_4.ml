@@ -12,10 +12,7 @@ module AC_4 : Arc_consistency.Arc_consistency = struct
 
   type 'a remove_in_domain = string DLL.dll_node list
   type 'a cell_type = 'a double_connection DLL.t MapStr.t
-
   type 'a data_struct = ('a DLL.dll_node * 'a cell_type) MapInt.t
-  (** For each constraint and each value there is a linked list of supports  *)
-
   type 'a stack_operation = 'a double_connection DLL.dll_node list
 
   let loop_into_map f m = MapStr.iter (fun _ v -> DLL.iter_value f v) m
@@ -49,15 +46,22 @@ module AC_4 : Arc_consistency.Arc_consistency = struct
       let _, supp = MapInt.find elt.id !data_struct in
       MapStr.find e2.dll_father.name supp
     in
-    Hashtbl.iter
-      (fun _ ((a : string DLL.dll_node), (b : string DLL.dll_node)) ->
-        if a.is_in && b.is_in then (
-          let x, y = (find_pair a b, find_pair b a) in
-          DLL.append { node = b; assoc = None } x;
-          DLL.append { node = a; assoc = None } y;
-          (DLL.get_last x).value.assoc <- Some (DLL.get_last y);
-          (DLL.get_last y).value.assoc <- Some (DLL.get_last x)))
-      graph.tbl;
+    Constraint.loop_domains
+      (fun d1 ->
+        DLL.iter
+          (fun v1 ->
+            DLL.iter_value
+              (DLL.iter (fun v2 ->
+                   if Constraint.relation graph v1 v2 then
+                     let x, y = (find_pair v1 v2, find_pair v2 v1) in
+                     if DLL.not_exist_by_value (fun e -> e.node == v2) x then (
+                       DLL.append { node = v2; assoc = None } x;
+                       DLL.append { node = v1; assoc = None } y;
+                       (DLL.get_last x).value.assoc <- Some (DLL.get_last y);
+                       (DLL.get_last y).value.assoc <- Some (DLL.get_last x))))
+              (Constraint.get_constraint_binding graph d1))
+          d1)
+      graph;
     !data_struct
 
   let revise (input : 'a DLL.dll_node) (data_struct : 'a data_struct) =
@@ -75,7 +79,6 @@ module AC_4 : Arc_consistency.Arc_consistency = struct
     (!removed_in_support, !to_remove_in_domain)
 
   let back_track removed_in_suport = List.iter DLL.insert removed_in_suport
-  (* DLL.insert input *)
 end
 
 include AC_4

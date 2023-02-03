@@ -38,8 +38,9 @@ let clean_domains ?(print = false) (g : 'a Constraint.graph) =
       let neighs = Constraint.get_constraint_binding g d1 in
       DLL.iter
         (fun v1 ->
-          if not (DLL.forall_value (DLL.exist (g.relation v1)) neighs) then
-            init_remove print v1)
+          if
+            not (DLL.forall_value (DLL.exist (Constraint.relation g v1)) neighs)
+          then init_remove print v1)
         d1)
     g;
   g

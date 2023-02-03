@@ -42,7 +42,7 @@ module AC_2001 : Arc_consistency.Arc_consistency = struct
              (fun d2 ->
                try
                  (DLL.iter (fun v2 ->
-                      if graph.relation v1 v2 then (
+                      if Constraint.relation graph v1 v2 then (
                         Hashtbl.add
                           (snd (Hashtbl.find last v1.id))
                           v2.dll_father.name (DLL.singleton "" v2);
@@ -66,7 +66,7 @@ module AC_2001 : Arc_consistency.Arc_consistency = struct
                (Hashtbl.find (snd (Hashtbl.find last v2.id)) v1.dll_father.name)
            in
            if last_value.value == v1 then
-             match DLL.find_from_next (graph.relation v2) v1 with
+             match DLL.find_from_next (Constraint.relation graph v2) v1 with
              | None -> to_remove_in_domain := v2 :: !to_remove_in_domain
              | Some next ->
                  DLL.prepend next last_value.dll_father;

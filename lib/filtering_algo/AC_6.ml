@@ -8,7 +8,8 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
     is_supporting : (string, 'a DLL.dll_node DLL.t) Hashtbl.t;
   }
 
-  type 'a data_struct = 'a Constraint.graph * (int, 'a cell_type) Hashtbl.t
+  type 'a s_list = (int, 'a cell_type) Hashtbl.t
+  type 'a data_struct = 'a Constraint.graph * 'a s_list
   type 'a remove_in_domain = string DLL.dll_node list
   type 'a stack_operation = 'a DLL.dll_node DLL.dll_node list
 
@@ -44,7 +45,7 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
                 try
                   DLL.iter
                     (fun v2 ->
-                      if graph.relation v1 v2 then (
+                      if Constraint.relation graph v1 v2 then (
                         let dom2 = Hashtbl.find data_struct v2.id in
                         Hashtbl.add dom2.is_supporting d1.name (DLL.empty "");
                         if not (Hashtbl.mem dom1.is_supporting d2.name) then
@@ -60,8 +61,8 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
     (graph, data_struct)
 
   let revise (node_to_remove : string DLL.dll_node)
-      ((graph, data_struct) : 'a data_struct) =
-    match Hashtbl.find_opt data_struct node_to_remove.id with
+      ((graph, s_list) : 'a data_struct) =
+    match Hashtbl.find_opt s_list node_to_remove.id with
     | None -> raise (Not_in_support "AC_6")
     | Some node ->
         let removed_in_domain = ref [] in
@@ -69,15 +70,15 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
         loop_into_map
           (fun (current : 'a DLL.dll_node DLL.dll_node) ->
             let current = current.value in
-            let node_in_support = Hashtbl.find data_struct current.id in
+            let node_in_support = Hashtbl.find s_list current.id in
             match
               DLL.find_from_next
-                (graph.relation node_in_support.value)
+                (Constraint.relation graph node_in_support.value)
                 node_to_remove
             with
             | None -> removed_in_domain := current :: !removed_in_domain
             | Some e ->
-                let dom = Hashtbl.find data_struct e.id in
+                let dom = Hashtbl.find s_list e.id in
                 let d =
                   Hashtbl.find dom.is_supporting current.dll_father.name
                 in

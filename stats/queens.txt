@@ -1,297 +1,297 @@
-Queen number : 3                     
+Queen number : 3                      
 Running AC-3
 ------------------------------
 The number of fails is 0
 The number of solutions is 6
-Total Time: 0.000335
-Time of backtracks: 0.000027
-Time of revise: 0.000085
+Total Time: 0.000241
+Time of backtracks: 0.000023
+Time of revise: 0.000068
 ------------------------------
 Running AC-4
 ------------------------------
 The number of fails is 0
 The number of solutions is 6
-Total Time: 0.000334
-Time of backtracks: 0.000028
-Time of revise: 0.000055
+Total Time: 0.000348
+Time of backtracks: 0.000029
+Time of revise: 0.000052
 ------------------------------
 Running AC-6
 ------------------------------
 The number of fails is 0
 The number of solutions is 6
-Total Time: 0.000575
+Total Time: 0.000504
 Time of backtracks: 0.000025
-Time of revise: 0.000358
+Time of revise: 0.000320
 ------------------------------
 Running AC-2001
 ------------------------------
 The number of fails is 0
 The number of solutions is 6
-Total Time: 0.000352
-Time of backtracks: 0.000028
-Time of revise: 0.000084
+Total Time: 0.000307
+Time of backtracks: 0.000030
+Time of revise: 0.000069
 ------------------------------
 Queen number : 4
 Running AC-3
 ------------------------------
 The number of fails is 0
 The number of solutions is 6
-Total Time: 0.000346
-Time of backtracks: 0.000027
-Time of revise: 0.000089
+Total Time: 0.000298
+Time of backtracks: 0.000025
+Time of revise: 0.000081
 ------------------------------
 Running AC-4
 ------------------------------
 The number of fails is 0
 The number of solutions is 6
-Total Time: 0.000325
-Time of backtracks: 0.000028
-Time of revise: 0.000057
+Total Time: 0.000286
+Time of backtracks: 0.000027
+Time of revise: 0.000052
 ------------------------------
 Running AC-6
 ------------------------------
 The number of fails is 0
 The number of solutions is 6
-Total Time: 0.000838
-Time of backtracks: 0.000034
-Time of revise: 0.000577
+Total Time: 0.000630
+Time of backtracks: 0.000031
+Time of revise: 0.000390
 ------------------------------
 Running AC-2001
 ------------------------------
 The number of fails is 0
 The number of solutions is 6
-Total Time: 0.000327
+Total Time: 0.000277
 Time of backtracks: 0.000028
-Time of revise: 0.000079
+Time of revise: 0.000069
 ------------------------------
 Queen number : 5
 Running AC-3
 ------------------------------
 The number of fails is 2
 The number of solutions is 10
-Total Time: 0.002636
-Time of backtracks: 0.000135
-Time of revise: 0.001790
+Total Time: 0.001604
+Time of backtracks: 0.000103
+Time of revise: 0.000976
 ------------------------------
 Running AC-4
 ------------------------------
 The number of fails is 2
 The number of solutions is 10
-Total Time: 0.001274
-Time of backtracks: 0.000205
-Time of revise: 0.000529
+Total Time: 0.001080
+Time of backtracks: 0.000173
+Time of revise: 0.000442
 ------------------------------
 Running AC-6
 ------------------------------
 The number of fails is 2
 The number of solutions is 10
-Total Time: 0.003462
-Time of backtracks: 0.000127
-Time of revise: 0.002801
+Total Time: 0.003757
+Time of backtracks: 0.000134
+Time of revise: 0.003075
 ------------------------------
 Running AC-2001
 ------------------------------
 The number of fails is 2
 The number of solutions is 10
-Total Time: 0.001613
-Time of backtracks: 0.000124
-Time of revise: 0.000948
+Total Time: 0.001334
+Time of backtracks: 0.000113
+Time of revise: 0.000745
 ------------------------------
 Queen number : 6
 Running AC-3
 ------------------------------
 The number of fails is 18
 The number of solutions is 4
-Total Time: 0.004555
-Time of backtracks: 0.000129
-Time of revise: 0.003400
+Total Time: 0.005597
+Time of backtracks: 0.000198
+Time of revise: 0.003784
 ------------------------------
 Running AC-4
 ------------------------------
 The number of fails is 18
 The number of solutions is 4
-Total Time: 0.002955
-Time of backtracks: 0.000416
-Time of revise: 0.001530
+Total Time: 0.004086
+Time of backtracks: 0.000428
+Time of revise: 0.002032
 ------------------------------
 Running AC-6
 ------------------------------
 The number of fails is 18
 The number of solutions is 4
-Total Time: 0.009922
-Time of backtracks: 0.000289
-Time of revise: 0.008531
+Total Time: 0.018687
+Time of backtracks: 0.000577
+Time of revise: 0.016219
 ------------------------------
 Running AC-2001
 ------------------------------
 The number of fails is 18
 The number of solutions is 4
-Total Time: 0.003767
-Time of backtracks: 0.000185
-Time of revise: 0.002533
+Total Time: 0.005888
+Time of backtracks: 0.000312
+Time of revise: 0.003896
 ------------------------------
 Queen number : 7
 Running AC-3
 ------------------------------
 The number of fails is 36
 The number of solutions is 40
-Total Time: 0.018049
-Time of backtracks: 0.000659
-Time of revise: 0.013904
+Total Time: 0.027240
+Time of backtracks: 0.001175
+Time of revise: 0.019640
 ------------------------------
 Running AC-4
 ------------------------------
 The number of fails is 36
 The number of solutions is 40
-Total Time: 0.013437
-Time of backtracks: 0.003481
-Time of revise: 0.006404
+Total Time: 0.017898
+Time of backtracks: 0.002734
+Time of revise: 0.009028
 ------------------------------
 Running AC-6
 ------------------------------
 The number of fails is 36
 The number of solutions is 40
-Total Time: 0.038042
-Time of backtracks: 0.001322
-Time of revise: 0.033260
+Total Time: 0.068429
+Time of backtracks: 0.002521
+Time of revise: 0.058902
 ------------------------------
 Running AC-2001
 ------------------------------
 The number of fails is 36
 The number of solutions is 40
-Total Time: 0.013665
-Time of backtracks: 0.000910
-Time of revise: 0.009465
+Total Time: 0.024367
+Time of backtracks: 0.001712
+Time of revise: 0.016527
 ------------------------------
 Queen number : 8
 Running AC-3
 ------------------------------
 The number of fails is 186
 The number of solutions is 92
-Total Time: 0.058420
-Time of backtracks: 0.001762
-Time of revise: 0.045952
+Total Time: 0.084129
+Time of backtracks: 0.003315
+Time of revise: 0.061405
 ------------------------------
 Running AC-4
 ------------------------------
 The number of fails is 186
 The number of solutions is 92
-Total Time: 0.048486
-Time of backtracks: 0.008485
-Time of revise: 0.030000
+Total Time: 0.072788
+Time of backtracks: 0.010070
+Time of revise: 0.042071
 ------------------------------
 Running AC-6
 ------------------------------
 The number of fails is 186
 The number of solutions is 92
-Total Time: 0.112722
-Time of backtracks: 0.003784
-Time of revise: 0.099826
+Total Time: 0.147564
+Time of backtracks: 0.005102
+Time of revise: 0.129898
 ------------------------------
 Running AC-2001
 ------------------------------
 The number of fails is 186
 The number of solutions is 92
-Total Time: 0.036945
-Time of backtracks: 0.001996
-Time of revise: 0.027542
+Total Time: 0.033877
+Time of backtracks: 0.002135
+Time of revise: 0.024155
 ------------------------------
 Queen number : 9
 Running AC-3
 ------------------------------
 The number of fails is 748
 The number of solutions is 352
-Total Time: 0.147033
-Time of backtracks: 0.004515
-Time of revise: 0.116121
+Total Time: 0.145141
+Time of backtracks: 0.005587
+Time of revise: 0.105265
 ------------------------------
 Running AC-4
 ------------------------------
 The number of fails is 748
 The number of solutions is 352
-Total Time: 0.156113
-Time of backtracks: 0.032837
-Time of revise: 0.091865
+Total Time: 0.151811
+Time of backtracks: 0.020913
+Time of revise: 0.089837
 ------------------------------
 Running AC-6
 ------------------------------
 The number of fails is 748
 The number of solutions is 352
-Total Time: 0.379132
-Time of backtracks: 0.013045
-Time of revise: 0.338754
+Total Time: 0.510027
+Time of backtracks: 0.021325
+Time of revise: 0.452605
 ------------------------------
 Running AC-2001
 ------------------------------
 The number of fails is 748
 The number of solutions is 352
-Total Time: 0.177313
-Time of backtracks: 0.009441
-Time of revise: 0.130729
+Total Time: 0.177988
+Time of backtracks: 0.010410
+Time of revise: 0.131317
 ------------------------------
 Queen number : 10
 Running AC-3
 ------------------------------
 The number of fails is 5006
 The number of solutions is 724
-Total Time: 0.830505
-Time of backtracks: 0.017469
-Time of revise: 0.683129
+Total Time: 0.709271
+Time of backtracks: 0.019122
+Time of revise: 0.547382
 ------------------------------
 Running AC-4
 ------------------------------
 The number of fails is 5006
 The number of solutions is 724
-Total Time: 0.873756
-Time of backtracks: 0.171640
-Time of revise: 0.543028
+Total Time: 0.547935
+Time of backtracks: 0.080810
+Time of revise: 0.319648
 ------------------------------
 Running AC-6
 ------------------------------
 The number of fails is 5006
 The number of solutions is 724
-Total Time: 2.370275
-Time of backtracks: 0.076217
-Time of revise: 2.153527
+Total Time: 2.414355
+Time of backtracks: 0.086452
+Time of revise: 2.174953
 ------------------------------
 Running AC-2001
 ------------------------------
 The number of fails is 5006
 The number of solutions is 724
-Total Time: 0.728851
-Time of backtracks: 0.032383
-Time of revise: 0.564423
+Total Time: 0.733320
+Time of backtracks: 0.034996
+Time of revise: 0.548454
 ------------------------------
 Queen number : 11
 Running AC-3
 ------------------------------
 The number of fails is 28544
 The number of solutions is 2680
-Total Time: 4.577264
-Time of backtracks: 0.089358
-Time of revise: 3.767074
+Total Time: 3.745320
+Time of backtracks: 0.094369
+Time of revise: 2.908379
 ------------------------------
 Running AC-4
 ------------------------------
 The number of fails is 28544
 The number of solutions is 2680
-Total Time: 4.333834
-Time of backtracks: 0.897109
-Time of revise: 2.704011
+Total Time: 3.389891
+Time of backtracks: 0.500853
+Time of revise: 2.057273
 ------------------------------
 Running AC-6
 ------------------------------
 The number of fails is 28544
 The number of solutions is 2680
-Total Time: 13.070657
-Time of backtracks: 0.425576
-Time of revise: 11.952213
+Total Time: 12.937001
+Time of backtracks: 0.470447
+Time of revise: 11.719897
 ------------------------------
 Running AC-2001
 ------------------------------
 The number of fails is 28544
 The number of solutions is 2680
-Total Time: 3.639774
-Time of backtracks: 0.151423
-Time of revise: 2.831878
+Total Time: 3.569413
+Time of backtracks: 0.160359
+Time of revise: 2.688866
 ------------------------------

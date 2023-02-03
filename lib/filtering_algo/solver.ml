@@ -167,14 +167,16 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
 
   (** Returns if a fail has occured, i.e. if there is an empty domain among those that have been modified and the list of removed values *)
   let remove_by_value ?(verbose = false) value domain_name =
-    match
-      DLL.find_by_value value (Constraint.get_domain (get_graph ()) domain_name)
-    with
-    | None ->
-        invalid_arg
-          (Printf.sprintf "The value %s does not exists in the domain %s" value
-             domain_name)
-    | Some value_in_domain -> remove_by_node ~verbose value_in_domain
+    try
+      let e =
+        DLL.find_by_value value
+          (Constraint.get_domain (get_graph ()) domain_name)
+      in
+      remove_by_node ~verbose e
+    with _ ->
+      invalid_arg
+        (Printf.sprintf "The value %s does not exists in the domain %s" value
+           domain_name)
 
   let propagation_remove_by_value ?(verbose = false) value domain_name =
     let domain = Constraint.get_domain (get_graph ()) domain_name in
