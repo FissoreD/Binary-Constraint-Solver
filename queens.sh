@@ -6,6 +6,8 @@ stop="${2:-11}"
 
 algo=(3 4 6 2001);
 
+echo "Queens"
+
 while [ "$i" -le "$stop" ]; do
 
  echo -e "\033[0;35m$msg$i\033[0m"; 

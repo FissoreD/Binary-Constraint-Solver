@@ -4,7 +4,9 @@ msg="All Interval Series for : "
 i="${1:-3}"
 stop="${2:-11}"
 
-algo=(3 4 6 2001);
+algo=(3 4 2001 6);
+
+echo "All Interval Series"
 
 while [ "$i" -le "$stop" ]; do
 
