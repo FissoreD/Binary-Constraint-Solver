@@ -15,4 +15,4 @@ val print_domains : ('a DLL.t -> unit) -> 'a graph -> unit
 val print_string_domains : ?is_rev:bool -> string graph -> unit
 val loop_domains : ('a DLL.t -> unit) -> 'a graph -> unit
 val list_domains : 'a graph -> 'a DLL.t list
-val relation : 'a graph -> 'a DLL.dll_node -> 'a DLL.dll_node -> bool
+val relation : 'a graph -> 'a DLL.node -> 'a DLL.node -> bool

@@ -3,7 +3,7 @@ module AC_3 : Arc_consistency.Arc_consistency = struct
 
   module DLL = DoublyLinkedList
 
-  type 'a remove_in_domain = string DLL.dll_node list
+  type 'a remove_in_domain = string DLL.node list
   type 'a stack_operation = unit
   type 'a data_struct = 'a Constraint.graph
 
@@ -11,8 +11,8 @@ module AC_3 : Arc_consistency.Arc_consistency = struct
   let print_data_struct _ = print_endline "No data structure for AC-3"
   let initialization = Arc_consistency.clean_domains
 
-  let revise (d1 : 'a DLL.dll_node) (graph : 'a data_struct) =
-    let to_remove_in_domain : 'a DLL.dll_node list ref = ref [] in
+  let revise (d1 : 'a DLL.node) (graph : 'a data_struct) =
+    let to_remove_in_domain : 'a DLL.node list ref = ref [] in
     DLL.iter_value
       (DLL.iter (fun current ->
            if DLL.not_exist (Constraint.relation graph current) d1.dll_father

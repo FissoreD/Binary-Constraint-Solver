@@ -6,14 +6,14 @@ module AC_6 = struct
   module DLL = DoublyLinkedList
 
   type 'a cell_type = {
-    value : 'a DLL.dll_node;
-    is_supporting : (int, 'a DLL.dll_node DLL.t) Hashtbl.t;
+    value : 'a DLL.node;
+    is_supporting : (int, 'a DLL.node DLL.t) Hashtbl.t;
   }
 
   type 'a s_list = (int, 'a cell_type) Hashtbl.t
   type 'a data_struct = 'a Constraint.graph * 'a s_list
-  type 'a remove_in_domain = string DLL.dll_node list
-  type 'a stack_operation = 'a DLL.dll_node DLL.dll_node list
+  type 'a remove_in_domain = string DLL.node list
+  type 'a stack_operation = 'a DLL.node DLL.node list
 
   let name = "AC-6"
   let loop_into_map f m = Hashtbl.iter ~f:(fun v -> DLL.iter f v) m
@@ -36,7 +36,7 @@ module AC_6 = struct
     let empty_cell v =
       { value = v; is_supporting = Hashtbl.create (module Int) }
     in
-    let add_compteur (v : 'a DLL.dll_node) =
+    let add_compteur (v : 'a DLL.node) =
       Hashtbl.add_exn data_struct ~key:v.id ~data:(empty_cell v)
     in
     Constraint.loop_domains (fun dom -> DLL.iter add_compteur dom) graph;
@@ -72,7 +72,7 @@ module AC_6 = struct
 
     (graph, data_struct)
 
-  let revise (node_to_remove : string DLL.dll_node)
+  let revise (node_to_remove : string DLL.node)
       ((graph, s_list) : 'a data_struct) =
     match Hashtbl.find s_list node_to_remove.id with
     | None -> raise (Not_in_support "AC_6")
@@ -80,7 +80,7 @@ module AC_6 = struct
         let removed_in_domain = ref [] in
         let appended_in_support = ref [] in
         loop_into_map
-          (fun (current : 'a DLL.dll_node DLL.dll_node) ->
+          (fun (current : 'a DLL.node DLL.node) ->
             let current = current.value in
             let node_in_support = Hashtbl.find_exn s_list current.id in
             match

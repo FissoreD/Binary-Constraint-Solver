@@ -6,25 +6,25 @@ module AC_4 = struct
   module DLL = DoublyLinkedList
 
   type 'a double_connection = {
-    node : 'a DLL.dll_node;
-    mutable assoc : 'a double_connection DLL.dll_node option;
+    node : 'a DLL.node;
+    mutable assoc : 'a double_connection DLL.node option;
   }
 
-  type 'a remove_in_domain = string DLL.dll_node list
+  type 'a remove_in_domain = string DLL.node list
 
   type 'a cell_type =
     (int, 'a double_connection DLL.t, Int.comparator_witness) Map.t
 
   type 'a data_struct =
-    (int, 'a DLL.dll_node * 'a cell_type, Int.comparator_witness) Map.t
+    (int, 'a DLL.node * 'a cell_type, Int.comparator_witness) Map.t
 
-  type 'a stack_operation = 'a double_connection DLL.dll_node list
+  type 'a stack_operation = 'a double_connection DLL.node list
 
   let name = "AC-4"
   let loop_into_map f m = Map.iter m ~f:(fun v -> DLL.iter_value f v)
 
   let print_data_struct (c : 'a data_struct) =
-    Map.iter c ~f:(fun ((a, b) : 'a DLL.dll_node * 'a cell_type) ->
+    Map.iter c ~f:(fun ((a, b) : 'a DLL.node * 'a cell_type) ->
         Stdio.printf "%s is supported by " (Arc_consistency.make_name a);
         loop_into_map
           (fun e -> Stdio.printf "%s " (Arc_consistency.make_name e.node))
@@ -46,7 +46,7 @@ module AC_4 = struct
             data_struct := Map.add_exn !data_struct ~key:v.id ~data:(v, !tbl))
           d)
       graph;
-    let find_pair (elt : 'a DLL.dll_node) (e2 : 'a DLL.dll_node) =
+    let find_pair (elt : 'a DLL.node) (e2 : 'a DLL.node) =
       let _, supp = Map.find !data_struct elt.id |> Option.value_exn in
       Map.find supp e2.dll_father.id_dom |> Option.value_exn
     in
@@ -69,7 +69,7 @@ module AC_4 = struct
       graph;
     !data_struct
 
-  let revise (input : 'a DLL.dll_node) (data_struct : 'a data_struct) =
+  let revise (input : 'a DLL.node) (data_struct : 'a data_struct) =
     let _, supported = Map.find data_struct input.id |> Option.value_exn in
     let to_remove_in_domain = ref [] in
     let removed_in_support = ref [] in

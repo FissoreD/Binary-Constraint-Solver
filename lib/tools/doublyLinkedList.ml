@@ -8,16 +8,16 @@ let gen =
     !x
 
 (* The type of the double linked list (ddl) *)
-type 'e dll_node = {
+type 'e node = {
   value : 'e;
   id : int;
   dll_father : 'e t;
-  mutable prev : 'e dll_node option;
-  mutable next : 'e dll_node option;
+  mutable prev : 'e node option;
+  mutable next : 'e node option;
   mutable is_in : bool;
 }
 
-and 'e sentinel = { mutable first : 'e dll_node; mutable last : 'e dll_node }
+and 'e sentinel = { mutable first : 'e node; mutable last : 'e node }
 and 'e t = { id_dom : int; name : string; mutable content : 'e sentinel option }
 
 let empty name = { name; content = None; id_dom = gen () }
@@ -138,11 +138,11 @@ let iter_value f d = iter_gen false (fun e -> f e.value) d
 let map_value f d = map (fun e -> f e.value) d
 let iter_rev f d = iter_gen true f d
 
-let rec find_from p (t : 'a dll_node) =
+let rec find_from p (t : 'a node) =
   if p t then Some t
   else match t.next with None -> None | Some e -> find_from p e
 
-let find_from_next p (t : 'a dll_node) =
+let find_from_next p (t : 'a node) =
   match t.next with None -> None | Some t -> find_from p t
 
 let find p (t : 'a t) =
@@ -164,10 +164,10 @@ let find_by_value (value : 'a) e =
   let res = find (fun e -> e.value = value) e in
   Option.get res
 
-let rec exists_from p (t : 'a dll_node) =
+let rec exists_from p (t : 'a node) =
   p t || match t.next with None -> false | Some e -> exists_from p e
 
-let rec exists_from_by_value (p : 'a -> bool) (t : 'a dll_node) =
+let rec exists_from_by_value (p : 'a -> bool) (t : 'a node) =
   p t.value
   || match t.next with None -> false | Some e -> exists_from_by_value p e
 
@@ -204,7 +204,7 @@ let forall p (t : 'a t) =
 
 let forall_value p (t : 'a t) = forall (fun e -> p e.value) t
 
-let remove (node : 'a dll_node) =
+let remove (node : 'a node) =
   if not node.is_in then raise AlreadyOut;
   node.is_in <- false;
   let dom1 = get node.dll_father.content in

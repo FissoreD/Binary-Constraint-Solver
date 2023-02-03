@@ -5,11 +5,11 @@ module AC_2001 = struct
 
   module DLL = DoublyLinkedList
 
-  type 'a remove_in_domain = string DLL.dll_node list
-  type 'a map_value = 'a DLL.dll_node * (int, 'a DLL.dll_node DLL.t) Hashtbl.t
+  type 'a remove_in_domain = string DLL.node list
+  type 'a map_value = 'a DLL.node * (int, 'a DLL.node DLL.t) Hashtbl.t
   type 'a last = (int, 'a map_value) Hashtbl.t
   type 'a data_struct = { last : 'a last; graph : 'a Constraint.graph }
-  type 'a stack_operation = 'a DLL.dll_node DLL.dll_node list
+  type 'a stack_operation = 'a DLL.node DLL.node list
 
   let name = "AC-2001"
 
@@ -18,7 +18,7 @@ module AC_2001 = struct
       ~f:(fun ((e, v) : 'a map_value) ->
         Stdio.printf "node : %s, support : " (Arc_consistency.make_name e);
         Hashtbl.iter
-          ~f:(fun (v : 'a DLL.dll_node DLL.t) ->
+          ~f:(fun (v : 'a DLL.node DLL.t) ->
             Stdio.printf "%s "
               (Arc_consistency.make_name (DLL.get_first v).value))
           v;
@@ -30,7 +30,7 @@ module AC_2001 = struct
     let graph = Arc_consistency.clean_domains ~print graph in
     let last : string last = Hashtbl.create ~size:2048 (module Int) in
     let domain_list = Constraint.list_domains graph in
-    let add_compteur (v : 'a DLL.dll_node) =
+    let add_compteur (v : 'a DLL.node) =
       Hashtbl.add_exn last ~key:v.id
         ~data:(v, Hashtbl.create ~size:2048 (module Int))
     in
@@ -57,8 +57,8 @@ module AC_2001 = struct
       domain_list;
     { last; graph }
 
-  let revise (v1 : 'a DLL.dll_node) ({ last; graph } : 'a data_struct) =
-    let to_remove_in_domain : 'a DLL.dll_node list ref = ref [] in
+  let revise (v1 : 'a DLL.node) ({ last; graph } : 'a data_struct) =
+    let to_remove_in_domain : 'a DLL.node list ref = ref [] in
     let undo_assoc = ref [] in
     DLL.iter_value
       (DLL.iter (fun v2 ->

@@ -8,7 +8,7 @@ module type Arc_consistency = sig
 
   type 'a data_struct
   type 'a stack_operation
-  type 'a remove_in_domain = string DLL.dll_node list
+  type 'a remove_in_domain = string DLL.node list
 
   val name : string
   val print_data_struct : string data_struct -> unit
@@ -17,21 +17,21 @@ module type Arc_consistency = sig
     ?print:bool -> string Constraint.graph -> string data_struct
 
   val revise :
-    string DLL.dll_node ->
+    string DLL.node ->
     string data_struct ->
     string stack_operation * string remove_in_domain
 
   val back_track : string stack_operation -> unit
 end
 
-let init_remove print (v : 'a DLL.dll_node) =
+let init_remove print (v : 'a DLL.node) =
   if print then
     MyPrint.print_color_str "green"
       (Printf.sprintf "Initialization : removing %s from %s" v.value
          v.dll_father.name);
   DLL.remove v
 
-let make_name (node : 'a DLL.dll_node) =
+let make_name (node : 'a DLL.node) =
   Printf.sprintf "(%s,%s)" node.dll_father.name node.value
 
 let clean_domains ?(print = false) (g : 'a Constraint.graph) =

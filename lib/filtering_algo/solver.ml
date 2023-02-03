@@ -36,7 +36,7 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
   let get_graph () = Option.value_exn !graph
 
   type 'a stack_type =
-    (string AF.stack_operation * string DLL.dll_node) option Stack.t
+    (string AF.stack_operation * string DLL.node) option Stack.t
 
   (* The internal operation of the filtering algos *)
   let internal_op : 'a stack_type =
@@ -51,7 +51,7 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
   let get_op () = Option.value_exn (Stack.pop internal_op)
 
   let to_str_node_list l =
-    let to_str (e : 'a DLL.dll_node) =
+    let to_str (e : 'a DLL.node) =
       Printf.sprintf "(%s,%s)" e.dll_father.name e.value
     in
     let append a b = Printf.sprintf "%s, %s" (to_str b) a in
@@ -78,7 +78,7 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
       print_domains ();
       Stdio.print_endline "-----------------------------")
 
-  let remove_by_node ?(verbose = false) (node : 'a DLL.dll_node) =
+  let remove_by_node ?(verbose = false) (node : 'a DLL.node) =
     if node.is_in then (
       DLL.remove node;
       let t = Unix.gettimeofday () in
@@ -94,13 +94,12 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
         print_list_nodes unsupported);
       if DLL.is_empty node.dll_father then raise Empty_domain)
 
-  let rec propagation_remove_by_node ?(verbose = false) (node : 'a DLL.dll_node)
-      =
+  let rec propagation_remove_by_node ?(verbose = false) (node : 'a DLL.node) =
     if node.is_in then (
       remove_by_node ~verbose node;
       List.iter ~f:(propagation_remove_by_node ~verbose) !no_more_supported)
 
-  let propagation_select_by_node ?(verbose = false) (v : 'a DLL.dll_node) =
+  let propagation_select_by_node ?(verbose = false) (v : 'a DLL.node) =
     if verbose then
       MyPrint.print_color_str "blue"
         (Printf.sprintf "--> Selecting %s from %s" v.value v.dll_father.name);

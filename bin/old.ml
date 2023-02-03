@@ -4,7 +4,7 @@ module DLL = DoublyLinkedList
 let build_domain name n = List.init n string_of_int |> DLL.of_list name
 
 let print_list_nodes l =
-  List.iter (fun (e : string DLL.dll_node) -> Printf.printf "%s " e.value) l;
+  List.iter (fun (e : string DLL.node) -> Printf.printf "%s " e.value) l;
   print_newline ()
 
 let build_constraint () =

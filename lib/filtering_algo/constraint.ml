@@ -5,7 +5,7 @@ module Tuple = struct
   type t = int * int [@@deriving sexp_of, compare, hash]
 end
 
-type 'a relation = 'a DLL.dll_node -> 'a DLL.dll_node -> bool
+type 'a relation = 'a DLL.node -> 'a DLL.node -> bool
 
 (* module StrMap = Map.Make (String) *)
 
@@ -20,7 +20,7 @@ type 'a graph = {
   domains : (string, 'a DLL.t) Hashtbl.t;
 }
 
-let find_relation tbl (a : 'a DLL.dll_node) (b : 'a DLL.dll_node) =
+let find_relation tbl (a : 'a DLL.node) (b : 'a DLL.node) =
   Hashtbl.mem tbl (a.id, b.id) || Hashtbl.mem tbl (b.id, a.id)
 
 let build_constraint () : 'a graph =
