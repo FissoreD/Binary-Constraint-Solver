@@ -2,7 +2,7 @@
 
 ## Command options
 
-A constraint solver using AC-[3,5,6,2001] filtering algos
+A constraint solver using AC-[3,4,6,2001] filtering algos
   -ac          Set the filtering algo among 3, 4, 6, 2001 - default : 3
   -v           Set the verbose mode
   -f           Set the input file

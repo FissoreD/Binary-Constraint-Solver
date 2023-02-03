@@ -36,7 +36,7 @@ let () =
   in
 
   Arg.parse speclist print_endline
-    "A constraint solver using AC-[3,5,6,2001] filtering algos";
+    "A constraint solver using AC-[3,4,6,2001] filtering algos";
 
   let m : (module Arc_consistency.Arc_consistency) =
     match !algo with
