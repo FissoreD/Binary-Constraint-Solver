@@ -8,6 +8,7 @@ module type M = sig
   val find_solution :
     ?debug:bool ->
     ?count_only:bool ->
+    ?only_valid:bool ->
     ?verbose:bool ->
     ?one_sol:bool ->
     unit ->
@@ -21,7 +22,7 @@ end
 
 let debug ?(msg = "") () = Stdio.print_endline ("Debugging : " ^ msg)
 
-module Make (AF : Arc_consistency.Arc_consistency) = struct
+module Make (AF : Arc_consistency.Arc_consistency) : M = struct
   module DLL = DoublyLinkedList
 
   exception Empty_domain
@@ -119,8 +120,8 @@ module Make (AF : Arc_consistency.Arc_consistency) = struct
     done;
     time_of_backtracks := Unix.gettimeofday () -. t +. !time_of_backtracks
 
-  let find_solution ?(debug = false) ?(count_only = false) ?(verbose = false)
-      ?(one_sol = false) () =
+  let find_solution ?(debug = false) ?(count_only = false) ?(only_valid = false)
+      ?(verbose = false) ?(one_sol = false) () =
     let exception Stop_One_Sol in
     let domains =
       Constraint.list_domains (get_graph ())
@@ -153,7 +154,7 @@ module Make (AF : Arc_consistency.Arc_consistency) = struct
                  aux sol tl
                with Empty_domain ->
                  Int.incr number_of_fails;
-                 if not count_only then print_fail sol);
+                 if (not count_only) && not only_valid then print_fail sol);
               back_track ())
             hd
     in
