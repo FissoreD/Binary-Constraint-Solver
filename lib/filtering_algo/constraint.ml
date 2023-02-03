@@ -1,23 +1,5 @@
 open Base
-(** 
-  Constraints are represented by a dll D of pair of nodes. 
-  Two values v1, v2 support each other if ther is a pair 
-  (a,b) or (b,a) in D.
-*)
-
 module DLL = DoublyLinkedList
-
-(* module type Tuple = sig
-     type t = int * int
-
-     val compare : t -> t -> int
-     val sexp_of_t : t -> Sexp.t
-
-     val hash_fold_t :
-       Base_internalhash_types.state -> t -> Base_internalhash_types.state
-
-     val hash : t -> int
-   end *)
 
 module Tuple = struct
   type t = int * int [@@deriving sexp_of, compare, hash]

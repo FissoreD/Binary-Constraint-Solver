@@ -1,3 +1,4 @@
+open Base
 module DLL = DoublyLinkedList
 
 module type Arc_consistency = sig
@@ -9,6 +10,7 @@ module type Arc_consistency = sig
   type 'a stack_operation
   type 'a remove_in_domain = string DLL.dll_node list
 
+  val name : string
   val print_data_struct : string data_struct -> unit
 
   val initialization :

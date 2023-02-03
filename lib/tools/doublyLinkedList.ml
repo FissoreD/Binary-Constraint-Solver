@@ -1,7 +1,11 @@
 exception AlreadyIn
 exception AlreadyOut
 
-let id = ref 0
+let gen =
+  let x = ref 0 in
+  fun () ->
+    incr x;
+    !x
 
 (* The type of the double linked list (ddl) *)
 type 'e dll_node = {
@@ -14,17 +18,16 @@ type 'e dll_node = {
 }
 
 and 'e sentinel = { mutable first : 'e dll_node; mutable last : 'e dll_node }
-and 'e t = { name : string; mutable content : 'e sentinel option }
+and 'e t = { id_dom : int; name : string; mutable content : 'e sentinel option }
 
-let empty name = { name; content = None }
+let empty name = { name; content = None; id_dom = gen () }
 let get d = Option.get d
 let get_first d = (get d.content).first
 let get_last d = (get d.content).last
 let is_empty d = d.content = None
 
 let make_node value dll_father =
-  incr id;
-  { is_in = true; value; prev = None; next = None; dll_father; id = !id }
+  { is_in = true; value; prev = None; next = None; dll_father; id = gen () }
 
 let add_after_node current node =
   if current.dll_father != node.dll_father then
