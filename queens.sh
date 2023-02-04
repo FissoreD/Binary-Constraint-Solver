@@ -2,7 +2,7 @@ dune build;
 msg="Queens number : "
 
 i="${1:-3}"
-stop="${2:-11}"
+stop="${2:-12}"
 
 algo=(3 4 6 2001);
 
