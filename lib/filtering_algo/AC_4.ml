@@ -31,10 +31,10 @@ module AC_4 = struct
           b;
         Stdio.print_endline "")
 
-  let initialization ?(print = false) (graph : 'a Constraint.graph) =
+  let initialization ?(print = false) (graph : 'a Graph.graph) =
     let graph = Arc_consistency.clean_domains ~print graph in
     let data_struct : 'a data_struct ref = ref (Map.empty (module Int)) in
-    Constraint.loop_domains
+    Graph.loop_domains
       (fun d ->
         DLL.iter
           (fun v ->
@@ -42,7 +42,7 @@ module AC_4 = struct
             DLL.iter_value
               (fun (n : 'a DLL.t) ->
                 tbl := Map.add_exn !tbl ~key:n.id_dom ~data:(DLL.empty ""))
-              (Constraint.get_constraint_binding graph d);
+              (Graph.get_constraint_binding graph d);
             data_struct := Map.add_exn !data_struct ~key:v.id ~data:(v, !tbl))
           d)
       graph;
@@ -50,13 +50,13 @@ module AC_4 = struct
       let _, supp = Map.find !data_struct elt.id |> Option.value_exn in
       Map.find supp e2.dll_father.id_dom |> Option.value_exn
     in
-    Constraint.loop_domains
+    Graph.loop_domains
       (fun d1 ->
         DLL.iter
           (fun v1 ->
             DLL.iter_value
               (DLL.iter (fun v2 ->
-                   if Constraint.relation graph v1 v2 then
+                   if Graph.relation graph v1 v2 then
                      let x, y = (find_pair v1 v2, find_pair v2 v1) in
                      if DLL.not_exist_by_value (fun e -> phys_equal e.node v2) x
                      then (
@@ -64,7 +64,7 @@ module AC_4 = struct
                        DLL.append { node = v1; assoc = None } y;
                        (DLL.get_last x).value.assoc <- Some (DLL.get_last y);
                        (DLL.get_last y).value.assoc <- Some (DLL.get_last x))))
-              (Constraint.get_constraint_binding graph d1))
+              (Graph.get_constraint_binding graph d1))
           d1)
       graph;
     !data_struct

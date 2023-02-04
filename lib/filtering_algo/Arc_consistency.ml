@@ -12,9 +12,7 @@ module type Arc_consistency = sig
 
   val name : string
   val print_data_struct : string data_struct -> unit
-
-  val initialization :
-    ?print:bool -> string Constraint.graph -> string data_struct
+  val initialization : ?print:bool -> string Graph.graph -> string data_struct
 
   val revise :
     string DLL.node ->
@@ -34,14 +32,13 @@ let init_remove print (v : 'a DLL.node) =
 let make_name (node : 'a DLL.node) =
   Printf.sprintf "(%s,%s)" node.dll_father.name node.value
 
-let clean_domains ?(print = false) (g : 'a Constraint.graph) =
-  Constraint.loop_domains
+let clean_domains ?(print = false) (g : 'a Graph.graph) =
+  Graph.loop_domains
     (fun (d1 : 'a DLL.t) ->
-      let neighs = Constraint.get_constraint_binding g d1 in
+      let neighs = Graph.get_constraint_binding g d1 in
       DLL.iter
         (fun v1 ->
-          if
-            not (DLL.forall_value (DLL.exist (Constraint.relation g v1)) neighs)
+          if not (DLL.forall_value (DLL.exist (Graph.relation g v1)) neighs)
           then init_remove print v1)
         d1)
     g;

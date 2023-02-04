@@ -2,7 +2,7 @@ module DLL = DoublyLinkedList
 
 let parse ?(print_inp = false) cnt =
   if print_inp then List.iter print_endline cnt;
-  let graph = Constraint.build_constraint () in
+  let graph = Graph.build_graph () in
   let domains : (string, string DLL.t) Hashtbl.t = Hashtbl.create 1024 in
   let add_domain s =
     let name = List.hd s |> String.trim in
@@ -15,7 +15,7 @@ let parse ?(print_inp = false) cnt =
     | [ d1; v1; d2; v2 ] ->
         let d1 = Hashtbl.find domains d1 in
         let d2 = Hashtbl.find domains d2 in
-        Constraint.add_constraint graph d1 v1 d2 v2
+        Graph.add_constraint graph d1 v1 d2 v2
     | _ -> invalid_arg "Error in input file when parsing constraints"
   in
   let stage = ref 0 in
