@@ -6,8 +6,8 @@ module AC_2001 = struct
   module DLL = DoublyLinkedList
 
   type 'a remove_in_domain = string DLL.node list
-  type 'a map_value = 'a DLL.node * (int, 'a DLL.node DLL.t) Hashtbl.t
-  type 'a last = (int, 'a map_value) Hashtbl.t
+  type 'a map_value = 'a DLL.node * 'a DLL.node DLL.t
+  type 'a last = (int * int, 'a map_value) Hashtbl.t
   type 'a data_struct = { last : 'a last; graph : 'a Constraint.graph }
   type 'a stack_operation = 'a DLL.node DLL.node list
 
@@ -17,10 +17,9 @@ module AC_2001 = struct
     Hashtbl.iter
       ~f:(fun ((e, v) : 'a map_value) ->
         Stdio.printf "node : %s, support : " (Arc_consistency.make_name e);
-        Hashtbl.iter
-          ~f:(fun (v : 'a DLL.node DLL.t) ->
-            Stdio.printf "%s "
-              (Arc_consistency.make_name (DLL.get_first v).value))
+        DLL.iter_value
+          (fun (v : 'a DLL.node) ->
+            Stdio.printf "%s " (Arc_consistency.make_name v))
           v;
         Stdio.print_endline "")
       last
@@ -28,16 +27,9 @@ module AC_2001 = struct
   let initialization ?(print = false) (graph : 'a Constraint.graph) =
     let exception Found in
     let graph = Arc_consistency.clean_domains ~print graph in
-    let last : string last = Hashtbl.create ~size:2048 (module Int) in
-    let domain_list = Constraint.list_domains graph in
-    let add_compteur (v : 'a DLL.node) =
-      Hashtbl.add_exn last ~key:v.id
-        ~data:(v, Hashtbl.create ~size:2048 (module Int))
-    in
-    (* Add all values of every domains to the data_struct *)
-    Constraint.loop_domains (fun dom -> DLL.iter add_compteur dom) graph;
+    let last : string last = Hashtbl.create ~size:2048 (module Tuple) in
 
-    (* Add all values of every domains to the data_struct *)
+    let domain_list = Constraint.list_domains graph in
     List.iter
       ~f:
         (DLL.iter (fun v1 ->
@@ -46,10 +38,9 @@ module AC_2001 = struct
                  try
                    (DLL.iter (fun v2 ->
                         if Constraint.relation graph v1 v2 then (
-                          Hashtbl.add_exn
-                            (snd (Hashtbl.find_exn last v1.id))
-                            ~key:v2.dll_father.id_dom
-                            ~data:(DLL.singleton "" v2);
+                          Hashtbl.add_exn last
+                            ~key:(v1.id, v2.dll_father.id_dom)
+                            ~data:(v1, DLL.singleton "" v2);
                           raise Found)))
                      d2
                  with Found -> ())
@@ -64,9 +55,7 @@ module AC_2001 = struct
       (DLL.iter (fun v2 ->
            let last_value =
              DLL.get_first
-               (Hashtbl.find_exn
-                  (snd (Hashtbl.find_exn last v2.id))
-                  v1.dll_father.id_dom)
+               (snd (Hashtbl.find_exn last (v2.id, v1.dll_father.id_dom)))
            in
            if phys_equal last_value.value v1 then
              match DLL.find_from_next (Constraint.relation graph v2) v1 with

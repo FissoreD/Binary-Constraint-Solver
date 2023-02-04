@@ -1,10 +1,6 @@
 open Base
 module DLL = DoublyLinkedList
 
-module Tuple = struct
-  type t = int * int [@@deriving sexp_of, compare, hash]
-end
-
 type 'a relation = 'a DLL.node -> 'a DLL.node -> bool
 
 (* module StrMap = Map.Make (String) *)
