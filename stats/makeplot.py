@@ -1,8 +1,9 @@
 import sys
+import os
 
 AC_SPACE = 5
 AC_CONTENT = "fails,solutions,tot time,"\
-    "backtrack time,revise backtrack"
+    "backtrack time,revise time"
 ALGO_NB = 4
 
 
@@ -45,10 +46,20 @@ def read_file(file_path):
             output.write("x," + AC_CONTENT+"\n")
             # print(AC_CONTENT)
             for pos, j in enumerate(i):
-                output.write(str(pos + 1) + "," + ",".join(j) + "\n")
+                output.write(str(pos + 3) + "," + ",".join(j) + "\n")
             # print()
 
 
+def allTxtInFolder(folder):
+    for i in os.listdir(folder):
+        if i.endswith("txt"):
+            filepath = (folder if folder.endswith("\\") else folder + "\\") + i
+            read_file(filepath)
+
+
 if __name__ == "__main__":
+    if sys.argv[1] == "all":
+        allTxtInFolder(sys.argv[2])
     # print(sys.argv)
-    read_file(sys.argv[1])
+    else:
+        read_file(sys.argv[1])

@@ -51,7 +51,7 @@
 \usepackage[colorlinks, citecolor=red!60!green, linkcolor=blue!60!green, urlcolor=magenta]{hyperref}
 
 % \usepackage{algorithm}
-\usepackage{variable}
+
 \usepackage{float}
 % \usepackage{algo}
 \usepackage{mathtools}
@@ -63,7 +63,7 @@
 \usepackage[capitalise,noabbrev,nameinlink]{cleveref}
 
 \usepackage{tikz}
-\usetikzlibrary{automata, positioning, arrows, calc}
+\usetikzlibrary{automata, positioning, arrows, calc, datavisualization.formats.functions}
 
 
 \usepackage[linesnumbered,ruled]{algorithm2e}
@@ -129,7 +129,7 @@ sorting=ynt
 
 
 \author{Fissore Davide}
-\title{Mini-solver in OCaml based on binary-constraint problems}
+\title{Mini-solver in OCaml based on binary Constraint Satisfaction Problem}
 
 \makeatletter
 \let\thetitle\@title
@@ -190,9 +190,9 @@ sorting=ynt
 }
 
 
-\begin{abstract}
-    Goal: code a constraint solver using the arc-concistency algorithms: AC-3, AC-4, AC-6, AC-2001
-\end{abstract}
+% \begin{abstract}
+%     Goal: code a constraint solver using the arc-concistency algorithms: AC-3, AC-4, AC-6, AC-2001
+% \end{abstract}
 
 % If you don't want a supervisor, uncomment the two lines below and remove the section above
 %\Large \emph{Author:}\\
@@ -203,7 +203,7 @@ sorting=ynt
 %--------------------
 \mbox{}
 \vfill
-{\large Fall 2022}
+{\large Februray 2023}
 
 %--------------------
 \end{center}

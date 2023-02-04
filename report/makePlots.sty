@@ -1,0 +1,41 @@
+\newcommand{\test}[2]{
+  \def\algos{AC-3, AC-4, AC-6, AC-2001}
+  \begin{subfigure}[]{.45\linewidth}
+    \centering
+    \scalebox{.6}{
+      \begin{tikzpicture}
+        \begin{axis}[
+            legend pos=north west,
+            axis lines=middle, 
+            axis line style={->},
+            ylabel near ticks,
+            xlabel near ticks,
+            xlabel={n},
+            ylabel={#2}
+          ]
+          \foreach \algo in \algos{
+            \addplot table [y=#2, col sep=comma] {../stats/#1-\algo.csv};
+          }
+          \legend{AC-3, AC-4, AC-6, AC-2001}
+        \end{axis}
+      \end{tikzpicture}
+    }
+    \caption{#2}
+    \label{img:#1-#2}
+  \end{subfigure}
+}
+
+\newcommand{\plotProblem}[1]{
+  \begin{figure}[!htb]
+  % fails,solutions,tot time,backtrack time,revise time
+  \centering
+  \test{#1}{backtrack time}
+  \test{#1}{revise time}
+
+  \test{#1}{tot time}
+
+  \caption{Time taken by #1}
+  \label{img:#1}
+
+  \end{figure}
+}
