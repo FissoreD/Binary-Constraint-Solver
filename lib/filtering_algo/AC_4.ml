@@ -70,7 +70,7 @@ module AC_4 = struct
     !data_struct
 
   let revise (input : 'a DLL.node) (data_struct : 'a data_struct) =
-    let _, supported = Map.find data_struct input.id |> Option.value_exn in
+    let _, supported = Map.find_exn data_struct input.id in
     let to_remove_in_domain = ref [] in
     let removed_in_support = ref [] in
     loop_into_map

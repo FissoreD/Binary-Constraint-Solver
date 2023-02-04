@@ -40,7 +40,6 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
       (fun d1 ->
         DLL.iter
           (fun v1 ->
-            (* let dom1 = Hashtbl.find data_struct v1.id |> Option.value_exn in *)
             DLL.iter_value
               (fun (d2 : string DLL.t) ->
                 try
