@@ -3,7 +3,7 @@ module DLL = DoublyLinkedList
 type 'a domain = 'a DLL.t
 type 'a graph
 
-val build_constraint : unit -> string graph
+val build_graph : unit -> string graph
 
 val add_constraint :
   string graph -> string DLL.t -> string -> string DLL.t -> string -> unit

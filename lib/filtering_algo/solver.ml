@@ -1,9 +1,9 @@
 open Base
 
-module type M = sig
+module type Solver = sig
   module DLL = DoublyLinkedList
 
-  val initialization : ?verbose:bool -> string Constraint.graph -> unit
+  val initialization : ?verbose:bool -> string Graph.graph -> unit
 
   val find_solution :
     ?debug:bool ->
@@ -23,24 +23,23 @@ end
 
 let debug ?(msg = "") () = Stdio.print_endline ("Debugging : " ^ msg)
 
-module Make (AF : Arc_consistency.Arc_consistency) : M = struct
+module Make (AC : Arc_consistency.Arc_consistency) : Solver = struct
   module DLL = DoublyLinkedList
 
   exception Empty_domain
 
-  let no_more_supported = ref []
+  let delta_domain = ref []
   let time_of_backtracks = ref 0.
   let time_of_revise = ref 0.
-  let support = ref None
+  let internal_data_struct = ref None
+  let get_data_struct () = Option.value_exn !internal_data_struct
   let graph = ref None
-  let get_data_struct () = Option.value_exn !support
   let get_graph () = Option.value_exn !graph
 
   type 'a stack_type =
-    (string AF.stack_operation * string DLL.node) option Stack.t
+    (string AC.stack_operation * string DLL.node) option Stack.t
 
-  (* The internal operation of the filtering algos *)
-  let internal_op : 'a stack_type =
+  let stack_op : 'a stack_type =
     let stack = Stack.create () in
     Stack.push stack None;
     stack
@@ -48,8 +47,8 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
   let backtrack_mem : 'a stack_type = Stack.create ()
 
   (* let counter_remove_prov = ref 0 *)
-  let add_stack q = Stack.push internal_op (Some q)
-  let get_op () = Option.value_exn (Stack.pop internal_op)
+  let add_stack q = Stack.push stack_op (Some q)
+  let get_op () = Option.value_exn (Stack.pop_exn stack_op)
 
   let to_str_node_list l =
     let to_str (e : 'a DLL.node) =
@@ -63,16 +62,16 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
     in
     "[" ^ aux l ^ "]"
 
-  let print_domains () = Constraint.print_string_domains (get_graph ())
+  let print_domains () = Graph.print_string_domains (get_graph ())
   let print_list_nodes l = Stdio.print_endline (to_str_node_list l)
-  let print_data_struct () = AF.print_data_struct (get_data_struct ())
+  let print_data_struct () = AC.print_data_struct (get_data_struct ())
 
   let initialization ?(verbose = false) graph' =
-    support := Some (AF.initialization graph');
+    internal_data_struct := Some (AC.initialization graph');
     graph := Some graph';
     if verbose then (
       Stdio.print_endline "The data structure is:";
-      AF.print_data_struct (get_data_struct ());
+      AC.print_data_struct (get_data_struct ());
       Stdio.print_endline "The domains are";
       print_domains ();
       Stdio.print_endline "-----------------------------")
@@ -81,10 +80,10 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
     if node.is_in then (
       DLL.remove node;
       let t = Unix.gettimeofday () in
-      let stack_op, unsupported = AF.revise node (get_data_struct ()) in
+      let stack_op, unsupported = AC.revise node (get_data_struct ()) in
       time_of_revise := Unix.gettimeofday () -. t +. !time_of_revise;
       add_stack (stack_op, node);
-      no_more_supported := unsupported;
+      delta_domain := unsupported;
       if verbose then (
         MyPrint.print_color_str "red"
           (Printf.sprintf " * Removing %s from %s" node.value
@@ -96,24 +95,24 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
   let rec propagation_remove_by_node ?(verbose = false) (node : 'a DLL.node) =
     if node.is_in then (
       remove_by_node ~verbose node;
-      List.iter ~f:(propagation_remove_by_node ~verbose) !no_more_supported)
+      List.iter ~f:(propagation_remove_by_node ~verbose) !delta_domain)
 
   let propagation_select_by_node ?(verbose = false) (v : 'a DLL.node) =
     if verbose then
       MyPrint.print_color_str "blue"
         (Printf.sprintf "--> Selecting %s from %s" v.value v.dll_father.name);
-    Stack.push backtrack_mem (Stack.top internal_op |> Option.value_exn);
+    Stack.push backtrack_mem (Stack.top_exn stack_op);
     DLL.iter
       (fun v' ->
         if not (phys_equal v' v) then propagation_remove_by_node ~verbose v')
       v.dll_father
 
   let back_track () =
-    let top = Stack.pop backtrack_mem |> Option.value_exn in
+    let top = Stack.pop_exn backtrack_mem in
     let t = Unix.gettimeofday () in
-    while not (phys_equal top (Stack.top internal_op |> Option.value_exn)) do
-      let internal_op, node = get_op () |> Option.value_exn in
-      AF.back_track internal_op;
+    while not (phys_equal top (Stack.top_exn stack_op)) do
+      let internal_op, node = get_op () in
+      AC.back_track internal_op;
       DLL.insert node
     done;
     time_of_backtracks := Unix.gettimeofday () -. t +. !time_of_backtracks
@@ -122,7 +121,7 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
       ?(verbose = false) ?(one_sol = false) () =
     let exception Stop_One_Sol in
     let domains =
-      Constraint.list_domains (get_graph ())
+      Graph.list_domains (get_graph ())
       |> List.sort ~compare:(fun (a : 'a DLL.t) (b : 'a DLL.t) ->
              compare_string a.name b.name)
     in
@@ -135,7 +134,7 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
       MyPrint.print_color_str "green"
         ("A solution : " ^ to_str_node_list sol ^ " !!")
     in
-    if debug then AF.print_data_struct (get_data_struct ());
+    if debug then AC.print_data_struct (get_data_struct ());
     let time = Unix.gettimeofday () in
     let rec aux sol : string DLL.t list -> unit = function
       | [] ->
@@ -173,8 +172,7 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
   let remove_by_value ?(verbose = false) value domain_name =
     try
       let e =
-        DLL.find_by_value value
-          (Constraint.get_domain (get_graph ()) domain_name)
+        DLL.find_by_value value (Graph.get_domain (get_graph ()) domain_name)
       in
       remove_by_node ~verbose e
     with _ ->
@@ -184,7 +182,7 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
 
   let propagation_remove_by_value ?(verbose = false) (value : string)
       (domain_name : string) =
-    let domain = Constraint.get_domain (get_graph ()) domain_name in
+    let domain = Graph.get_domain (get_graph ()) domain_name in
     match DLL.find (fun e -> String.( = ) e.value value) domain with
     | None ->
         invalid_arg
@@ -192,7 +190,7 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
     | Some node -> propagation_remove_by_node ~verbose node
 
   let propagation_select_by_value ?(verbose = false) value domain_name =
-    let domain = Constraint.get_domain (get_graph ()) domain_name in
+    let domain = Graph.get_domain (get_graph ()) domain_name in
     match DLL.find (fun e -> String.( = ) e.value value) domain with
     | None ->
         invalid_arg

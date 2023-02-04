@@ -9,9 +9,9 @@ let print_list_nodes l =
 
 let build_constraint () =
   let d1, d2 = (build_domain "d1" 5, build_domain "d2" 5) in
-  let support = Constraint.build_constraint () in
+  let support = Graph.build_graph () in
   let add_constr a b =
-    Constraint.add_constraint support d1 (string_of_int a) d2 (string_of_int b)
+    Graph.add_constraint support d1 (string_of_int a) d2 (string_of_int b)
   in
   add_constr 0 0;
   add_constr 0 2;
@@ -34,7 +34,7 @@ let _ac_3 () =
     AC_3.revise (DLL.remove_by_value "4" d2 |> Option.get) supp
   in
 
-  Constraint.print_string_domains graph;
+  Graph.print_string_domains graph;
 
   print_string "removed = ";
   print_list_nodes unsopported;
@@ -42,7 +42,7 @@ let _ac_3 () =
   print_endline "Backtrack:";
   AC_3.back_track filtered;
 
-  Constraint.print_string_domains graph;
+  Graph.print_string_domains graph;
   print_endline ""
 
 let _ac_4 () =
@@ -78,7 +78,7 @@ let _ac_4 () =
   AC_4.print_data_struct supp;
 
   print_endline "";
-  Constraint.print_string_domains support;
+  Graph.print_string_domains support;
 
   while not (Queue.is_empty stack) do
     AC_4.back_track (Queue.take stack)
@@ -89,12 +89,12 @@ let _ac_4 () =
   AC_4.print_data_struct supp;
 
   print_endline "";
-  Constraint.print_string_domains support
+  Graph.print_string_domains support
 
 let _ac_6 () =
   let d1, d2, graph = build_constraint () in
 
-  Printf.printf "** length : %d\n" (List.length (Constraint.list_domains graph));
+  Printf.printf "** length : %d\n" (List.length (Graph.list_domains graph));
 
   let supp = AC_6.initialization graph in
   AC_6.print_data_struct supp;
@@ -122,6 +122,6 @@ let _ac_6 () =
   AC_6.print_data_struct supp;
 
   print_endline "";
-  Constraint.print_string_domains graph
+  Graph.print_string_domains graph
 
 let () = _ac_3 ()

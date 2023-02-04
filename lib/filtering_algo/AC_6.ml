@@ -7,7 +7,7 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
 
   type 'a cell_type = { value : 'a DLL.node; is_supporting : 'a DLL.node DLL.t }
   type 'a s_list = (int, 'a cell_type) Hashtbl.t
-  type 'a data_struct = 'a Constraint.graph * 'a s_list
+  type 'a data_struct = 'a Graph.graph * 'a s_list
   type 'a remove_in_domain = string DLL.node list
   type 'a stack_operation = 'a DLL.node DLL.node list
 
@@ -33,10 +33,10 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
     let add_compteur (v : 'a DLL.node) =
       Hashtbl.add_exn data_struct ~key:v.id ~data:(empty_cell v)
     in
-    Constraint.loop_domains (fun dom -> DLL.iter add_compteur dom) graph;
+    Graph.loop_domains (fun dom -> DLL.iter add_compteur dom) graph;
 
     let exception Found in
-    Constraint.loop_domains
+    Graph.loop_domains
       (fun d1 ->
         DLL.iter
           (fun v1 ->
@@ -45,13 +45,13 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
                 try
                   DLL.iter
                     (fun v2 ->
-                      if Constraint.relation graph v1 v2 then (
+                      if Graph.relation graph v1 v2 then (
                         let dom2 = Hashtbl.find_exn data_struct v2.id in
                         DLL.append v1 dom2.is_supporting;
                         raise Found))
                     d2
                 with Found -> ())
-              (Constraint.get_constraint_binding graph d1))
+              (Graph.get_constraint_binding graph d1))
           d1)
       graph;
     (graph, data_struct)
@@ -67,9 +67,7 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
           (fun (current : 'a DLL.node DLL.node) ->
             let current = current.value in
             match
-              DLL.find_from_next
-                (Constraint.relation graph current)
-                node_to_remove
+              DLL.find_from_next (Graph.relation graph current) node_to_remove
             with
             | None -> removed_in_domain := current :: !removed_in_domain
             | Some e ->
