@@ -57,5 +57,9 @@ let () =
   in
 
   Filtr.initialization ~verbose:!verbose graph;
+
   Filtr.find_solution ~debug:!debug ~count_only:!count_only
     ~only_valid:!only_valid ~verbose:!verbose ~one_sol:!one_sol ()
+(* Filtr.propagation_remove_by_value "2" "d2";
+   Filtr.print_data_struct ();
+   Filtr.print_domains () *)

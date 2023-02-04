@@ -18,6 +18,7 @@ module type M = sig
   val propagation_remove_by_value : ?verbose:bool -> string -> string -> unit
   val propagation_select_by_value : ?verbose:bool -> string -> string -> unit
   val print_data_struct : unit -> unit
+  val print_domains : unit -> unit
 end
 
 let debug ?(msg = "") () = Stdio.print_endline ("Debugging : " ^ msg)
@@ -62,9 +63,7 @@ module Make (AF : Arc_consistency.Arc_consistency) : M = struct
     in
     "[" ^ aux l ^ "]"
 
-  let print_domains ?(is_rev = false) () =
-    Constraint.print_string_domains ~is_rev (get_graph ())
-
+  let print_domains () = Constraint.print_string_domains (get_graph ())
   let print_list_nodes l = Stdio.print_endline (to_str_node_list l)
   let print_data_struct () = AF.print_data_struct (get_data_struct ())
 
