@@ -1,5 +1,7 @@
 # Constraint-Solver-with-Backpropagation
 
+A report of this project can be found [here](report/.aux/main.pdf)
+
 ## Command options
 
 A constraint solver using AC-[3,4,6,2001] filtering algos
