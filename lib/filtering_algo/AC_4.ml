@@ -6,17 +6,20 @@ module AC_4 = struct
   module DLL = DoublyLinkedList
 
   type 'a double_connection = {
-    node : 'a DLL.node;
+    node : 'a Graph.value;
     mutable assoc : 'a double_connection DLL.node option;
   }
 
-  type 'a remove_in_domain = string DLL.node list
+  type 'a remove_in_domain = string Graph.value list
 
   type 'a cell_type =
-    (int, 'a double_connection DLL.t, Int.comparator_witness) Map.t
+    ( 'a Graph.domain,
+      'a double_connection DLL.t,
+      Graph.Domain.comparator_witness )
+    Map.t
 
   type 'a data_struct =
-    (int, 'a DLL.node * 'a cell_type, Int.comparator_witness) Map.t
+    ('a Graph.value, 'a cell_type, Graph.Value.comparator_witness) Map.t
 
   type 'a stack_operation = 'a double_connection DLL.node list
 
@@ -24,31 +27,33 @@ module AC_4 = struct
   let loop_into_map f m = Map.iter m ~f:(fun v -> DLL.iter_value f v)
 
   let print_data_struct (c : 'a data_struct) =
-    Map.iter c ~f:(fun ((a, b) : 'a DLL.node * 'a cell_type) ->
-        Stdio.printf "%s is supported by " (Arc_consistency.make_name a);
+    Map.iteri c ~f:(fun ~key ~data ->
+        Stdio.printf "%s is supported by " (Arc_consistency.make_name key);
         loop_into_map
           (fun e -> Stdio.printf "%s " (Arc_consistency.make_name e.node))
-          b;
+          data;
         Stdio.print_endline "")
 
   let initialization ?(print = false) (graph : 'a Graph.graph) =
     let graph = Arc_consistency.clean_domains ~print graph in
-    let data_struct : 'a data_struct ref = ref (Map.empty (module Int)) in
+    let data_struct : 'a data_struct ref =
+      ref (Map.empty (module Graph.Value))
+    in
     Graph.loop_domains
       (fun d ->
         DLL.iter
           (fun v ->
-            let tbl = ref (Map.empty (module Int)) in
+            let tbl = ref (Map.empty (module Graph.Domain)) in
             DLL.iter_value
-              (fun (n : 'a DLL.t) ->
-                tbl := Map.add_exn !tbl ~key:n.id_dom ~data:(DLL.empty ""))
+              (fun (dom : 'a DLL.t) ->
+                tbl := Map.add_exn !tbl ~key:dom ~data:(DLL.empty ""))
               (Graph.get_constraint_binding graph d);
-            data_struct := Map.add_exn !data_struct ~key:v.id ~data:(v, !tbl))
+            data_struct := Map.add_exn !data_struct ~key:v ~data:!tbl)
           d)
       graph;
-    let find_pair (elt : 'a DLL.node) (e2 : 'a DLL.node) =
-      let _, supp = Map.find !data_struct elt.id |> Option.value_exn in
-      Map.find supp e2.dll_father.id_dom |> Option.value_exn
+    let find_pair (elt : 'a Graph.value) (e2 : 'a Graph.value) =
+      let supp = Map.find_exn !data_struct elt in
+      Map.find_exn supp e2.father
     in
     Graph.loop_domains
       (fun d1 ->
@@ -69,8 +74,8 @@ module AC_4 = struct
       graph;
     !data_struct
 
-  let revise (input : 'a DLL.node) (data_struct : 'a data_struct) =
-    let _, supported = Map.find_exn data_struct input.id in
+  let revise (input : 'a Graph.value) (data_struct : 'a data_struct) =
+    let supported = Map.find_exn data_struct input in
     let to_remove_in_domain = ref [] in
     let removed_in_support = ref [] in
     loop_into_map
@@ -78,7 +83,7 @@ module AC_4 = struct
         let sibling = Option.value_exn assoc in
         DLL.remove sibling;
         removed_in_support := sibling :: !removed_in_support;
-        if DLL.is_empty sibling.dll_father then
+        if DLL.is_empty sibling.father then
           to_remove_in_domain := node :: !to_remove_in_domain)
       supported;
     (!removed_in_support, !to_remove_in_domain)

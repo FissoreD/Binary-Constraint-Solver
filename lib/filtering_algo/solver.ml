@@ -37,7 +37,7 @@ module Make (AC : Arc_consistency.Arc_consistency) : Solver = struct
   let get_graph () = Option.value_exn !graph
 
   type 'a stack_type =
-    (string AC.stack_operation * string DLL.node) option Stack.t
+    (string AC.stack_operation * string Graph.value) option Stack.t
 
   let stack_op : 'a stack_type =
     let stack = Stack.create () in
@@ -51,8 +51,8 @@ module Make (AC : Arc_consistency.Arc_consistency) : Solver = struct
   let get_op () = Option.value_exn (Stack.pop_exn stack_op)
 
   let to_str_node_list l =
-    let to_str (e : 'a DLL.node) =
-      Printf.sprintf "(%s,%s)" e.dll_father.name e.value
+    let to_str (e : 'a Graph.value) =
+      Printf.sprintf "(%s,%s)" e.father.name e.value
     in
     let append a b = Printf.sprintf "%s, %s" (to_str b) a in
     let rec aux = function
@@ -76,7 +76,7 @@ module Make (AC : Arc_consistency.Arc_consistency) : Solver = struct
       print_domains ();
       Stdio.print_endline "-----------------------------")
 
-  let remove_by_node ?(verbose = false) (node : 'a DLL.node) =
+  let remove_by_node ?(verbose = false) (node : 'a Graph.value) =
     if node.is_in then (
       DLL.remove node;
       let t = Unix.gettimeofday () in
@@ -86,26 +86,26 @@ module Make (AC : Arc_consistency.Arc_consistency) : Solver = struct
       delta_domain := unsupported;
       if verbose then (
         MyPrint.print_color_str "red"
-          (Printf.sprintf " * Removing %s from %s" node.value
-             node.dll_father.name);
+          (Printf.sprintf " * Removing %s from %s" node.value node.father.name);
         Stdio.print_string "List of values having no more support = ";
         print_list_nodes unsupported);
-      if DLL.is_empty node.dll_father then raise Empty_domain)
+      if DLL.is_empty node.father then raise Empty_domain)
 
-  let rec propagation_remove_by_node ?(verbose = false) (node : 'a DLL.node) =
+  let rec propagation_remove_by_node ?(verbose = false) (node : 'a Graph.value)
+      =
     if node.is_in then (
       remove_by_node ~verbose node;
       List.iter ~f:(propagation_remove_by_node ~verbose) !delta_domain)
 
-  let propagation_select_by_node ?(verbose = false) (v : 'a DLL.node) =
+  let propagation_select_by_node ?(verbose = false) (v : 'a Graph.value) =
     if verbose then
       MyPrint.print_color_str "blue"
-        (Printf.sprintf "--> Selecting %s from %s" v.value v.dll_father.name);
+        (Printf.sprintf "--> Selecting %s from %s" v.value v.father.name);
     Stack.push backtrack_mem (Stack.top_exn stack_op);
     DLL.iter
       (fun v' ->
         if not (phys_equal v' v) then propagation_remove_by_node ~verbose v')
-      v.dll_father
+      v.father
 
   let back_track () =
     let top = Stack.pop_exn backtrack_mem in

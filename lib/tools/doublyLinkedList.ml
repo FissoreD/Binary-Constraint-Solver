@@ -11,7 +11,7 @@ let gen =
 type 'e node = {
   value : 'e;
   id : int;
-  dll_father : 'e t;
+  father : 'e t;
   mutable prev : 'e node option;
   mutable next : 'e node option;
   mutable is_in : bool;
@@ -26,21 +26,21 @@ let get_first d = (get d.content).first
 let get_last d = (get d.content).last
 let is_empty d = d.content = None
 
-let make_node value dll_father =
-  { is_in = true; value; prev = None; next = None; dll_father; id = gen () }
+let make_node value father =
+  { is_in = true; value; prev = None; next = None; father; id = gen () }
 
 let add_after_node current node =
-  if current.dll_father != node.dll_father then
+  if current.father != node.father then
     invalid_arg "Can't add after, in nodes with different fathers";
   node.prev <- Some current;
   node.next <- current.next;
   current.next <- Some node;
   match node.next with
-  | None -> (get node.dll_father.content).last <- node
+  | None -> (get node.father.content).last <- node
   | Some e -> e.prev <- Some node
 
 let add_after current value =
-  let value = make_node value current.dll_father in
+  let value = make_node value current.father in
   add_after_node current value
 
 let add_before_node current node =
@@ -48,11 +48,11 @@ let add_before_node current node =
   node.prev <- current.prev;
   current.prev <- Some node;
   match node.prev with
-  | None -> (get node.dll_father.content).first <- node
+  | None -> (get node.father.content).first <- node
   | Some e -> e.next <- Some node
 
 let add_before current value =
-  let value = make_node value current.dll_father in
+  let value = make_node value current.father in
   add_before_node current value
 
 let append e dll =
@@ -77,8 +77,8 @@ let prepend e dll =
 let insert e =
   if e.is_in then raise AlreadyIn;
   e.is_in <- true;
-  match e.dll_father.content with
-  | None -> e.dll_father.content <- Some { first = e; last = e }
+  match e.father.content with
+  | None -> e.father.content <- Some { first = e; last = e }
   | Some father -> (
       match (e.prev, e.next) with
       | None, None ->
@@ -207,9 +207,9 @@ let forall_value p (t : 'a t) = forall (fun e -> p e.value) t
 let remove (node : 'a node) =
   if not node.is_in then raise AlreadyOut;
   node.is_in <- false;
-  let dom1 = get node.dll_father.content in
+  let dom1 = get node.father.content in
   match (node.prev, node.next) with
-  | None, None -> node.dll_father.content <- None
+  | None, None -> node.father.content <- None
   | Some prev, None ->
       remove_after prev;
       dom1.last <- prev
