@@ -11,23 +11,15 @@ module AC_4 = struct
   }
 
   type 'a remove_in_domain = string Graph.value list
-
-  type 'a cell_type =
-    ( 'a Graph.domain,
-      'a double_connection DLL.t,
-      Graph.Domain.comparator_witness )
-    Map.t
-
-  type 'a data_struct =
-    ('a Graph.value, 'a cell_type, Graph.Value.comparator_witness) Map.t
-
+  type 'a cell_type = ('a Graph.domain, 'a double_connection DLL.t) Hashtbl.t
+  type 'a data_struct = ('a Graph.value, 'a cell_type) Hashtbl.t
   type 'a stack_operation = 'a double_connection DLL.node list
 
   let name = "AC-4"
-  let loop_into_map f m = Map.iter m ~f:(fun v -> DLL.iter_value f v)
+  let loop_into_map f m = Hashtbl.iter m ~f:(fun v -> DLL.iter_value f v)
 
   let print_data_struct (c : 'a data_struct) =
-    Map.iteri c ~f:(fun ~key ~data ->
+    Hashtbl.iteri c ~f:(fun ~key ~data ->
         Stdio.printf "%s is supported by " (Arc_consistency.make_name key);
         loop_into_map
           (fun e -> Stdio.printf "%s " (Arc_consistency.make_name e.node))
@@ -36,24 +28,22 @@ module AC_4 = struct
 
   let initialization ?(print = false) (graph : 'a Graph.graph) =
     let graph = Arc_consistency.clean_domains ~print graph in
-    let data_struct : 'a data_struct ref =
-      ref (Map.empty (module Graph.Value))
-    in
+    let data_struct : 'a data_struct = Hashtbl.create (module Graph.Value) in
     Graph.loop_domains
       (fun d ->
         DLL.iter
           (fun v ->
-            let tbl = ref (Map.empty (module Graph.Domain)) in
+            let tbl = Hashtbl.create (module Graph.Domain) in
             DLL.iter_value
               (fun (dom : 'a DLL.t) ->
-                tbl := Map.add_exn !tbl ~key:dom ~data:(DLL.empty ""))
+                Hashtbl.add_exn tbl ~key:dom ~data:(DLL.empty ""))
               (Graph.get_constraint_binding graph d);
-            data_struct := Map.add_exn !data_struct ~key:v ~data:!tbl)
+            Hashtbl.add_exn data_struct ~key:v ~data:tbl)
           d)
       graph;
     let find_pair (elt : 'a Graph.value) (e2 : 'a Graph.value) =
-      let supp = Map.find_exn !data_struct elt in
-      Map.find_exn supp e2.father
+      let supp = Hashtbl.find_exn data_struct elt in
+      Hashtbl.find_exn supp e2.father
     in
     Graph.loop_domains
       (fun d1 ->
@@ -72,10 +62,10 @@ module AC_4 = struct
               (Graph.get_constraint_binding graph d1))
           d1)
       graph;
-    !data_struct
+    data_struct
 
   let revise (input : 'a Graph.value) (data_struct : 'a data_struct) =
-    let supported = Map.find_exn data_struct input in
+    let supported = Hashtbl.find_exn data_struct input in
     let to_remove_in_domain = ref [] in
     let removed_in_support = ref [] in
     loop_into_map

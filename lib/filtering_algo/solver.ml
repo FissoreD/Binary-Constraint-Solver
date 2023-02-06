@@ -122,7 +122,7 @@ module Make (AC : Arc_consistency.Arc_consistency) : Solver = struct
     let exception Stop_One_Sol in
     let domains =
       Graph.list_domains (get_graph ())
-      |> List.sort ~compare:(fun (a : 'a DLL.t) (b : 'a DLL.t) ->
+      |> List.sort ~compare:(fun (a : 'a Graph.domain) (b : 'a Graph.domain) ->
              compare_string a.name b.name)
     in
     let number_of_fails = ref 0 in
@@ -136,7 +136,7 @@ module Make (AC : Arc_consistency.Arc_consistency) : Solver = struct
     in
     if debug then AC.print_data_struct (get_data_struct ());
     let time = Unix.gettimeofday () in
-    let rec aux sol : string DLL.t list -> unit = function
+    let rec aux sol : string Graph.domain list -> unit = function
       | [] ->
           if not count_only then print_sol sol;
           if one_sol then raise Stop_One_Sol;
