@@ -5,12 +5,13 @@ module AC_4 = struct
 
   module DLL = DoublyLinkedList
 
+  type 'a remove_in_domain = string Graph.value list
+
   type 'a double_connection = {
     node : 'a Graph.value;
     mutable assoc : 'a double_connection DLL.node option;
   }
 
-  type 'a remove_in_domain = string Graph.value list
   type 'a cell_type = ('a Graph.domain, 'a double_connection DLL.t) Hashtbl.t
   type 'a data_struct = ('a Graph.value, 'a cell_type) Hashtbl.t
   type 'a stack_operation = 'a double_connection DLL.node list
@@ -66,7 +67,7 @@ module AC_4 = struct
 
   let revise (input : 'a Graph.value) (data_struct : 'a data_struct) =
     let supported = Hashtbl.find_exn data_struct input in
-    let to_remove_in_domain = ref [] in
+    let delta_domains = ref [] in
     let removed_in_support = ref [] in
     loop_into_map
       (fun ({ node; assoc } : 'a double_connection) ->
@@ -74,9 +75,9 @@ module AC_4 = struct
         DLL.remove sibling;
         removed_in_support := sibling :: !removed_in_support;
         if DLL.is_empty sibling.father then
-          to_remove_in_domain := node :: !to_remove_in_domain)
+          delta_domains := node :: !delta_domains)
       supported;
-    (!removed_in_support, !to_remove_in_domain)
+    (!removed_in_support, !delta_domains)
 
   let back_track removed_in_suport = List.iter ~f:DLL.insert removed_in_suport
 end

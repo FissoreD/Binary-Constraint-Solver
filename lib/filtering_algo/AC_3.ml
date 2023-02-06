@@ -12,13 +12,13 @@ module AC_3 : Arc_consistency.Arc_consistency = struct
   let initialization = Arc_consistency.clean_domains
 
   let revise (v1 : 'a Graph.value) (graph : 'a data_struct) =
-    let to_remove_in_domain : 'a Graph.value list ref = ref [] in
+    let delta_domains : 'a Graph.value list ref = ref [] in
     DLL.iter_value
-      (DLL.iter (fun current ->
-           if DLL.not_exist (Graph.relation graph current) v1.father then
-             to_remove_in_domain := current :: !to_remove_in_domain))
+      (DLL.iter (fun v2 ->
+           if DLL.not_exist (Graph.relation graph v2) v1.father then
+             delta_domains := v2 :: !delta_domains))
       (Graph.get_constraint_binding graph v1.father);
-    ((), !to_remove_in_domain)
+    ((), !delta_domains)
 
   let back_track _ = ()
 end

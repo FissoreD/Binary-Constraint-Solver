@@ -5,9 +5,9 @@ module AC_6 : Arc_consistency.Arc_consistency = struct
 
   module DLL = DoublyLinkedList
 
+  type 'a remove_in_domain = string Graph.value list
   type 'a s_list = ('a Graph.value, 'a Graph.value Graph.domain) Hashtbl.t
   type 'a data_struct = 'a Graph.graph * 'a s_list
-  type 'a remove_in_domain = string Graph.value list
   type 'a stack_operation = 'a Graph.value Graph.value list
 
   let name = "AC-6"

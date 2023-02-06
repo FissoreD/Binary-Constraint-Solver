@@ -15,34 +15,28 @@ type 'a graph = {
 
 module Value = struct
   type t = string value
-  (* [@@deriving sexp_of, compare, hash] *)
-
-  include Comparator.Make (struct
-    type t = string value
-
-    let compare (x : t) (y : t) = compare x.id y.id
-    let sexp_of_t (x : t) = sexp_of_int x.id
-  end)
 
   let compare (x : t) (y : t) = compare x.id y.id
   let sexp_of_t (x : t) = sexp_of_int x.id
-  let hash (x : t) = hash_int x.id
+  let hash (x : t) = x.id
+end
+
+module ValuePair = struct
+  type t = string value * string domain
+
+  let compare ((a, b) : t) ((c, d) : t) =
+    match compare a.id c.id with 0 -> compare b.id_dom d.id_dom | e -> e
+
+  let sexp_of_t (x : t) = sexp_of_int (((fst x).id * 1001) + (snd x).id_dom)
+  let hash (x : t) = hash_int (((fst x).id * 1001) + (snd x).id_dom)
 end
 
 module Domain = struct
   type t = string domain
-  (* [@@deriving sexp_of, compare, hash] *)
-
-  include Comparator.Make (struct
-    type t = string domain
-
-    let compare (x : t) (y : t) = compare x.id_dom y.id_dom
-    let sexp_of_t (x : t) = sexp_of_int x.id_dom
-  end)
 
   let compare (x : t) (y : t) = compare x.id_dom y.id_dom
   let sexp_of_t (x : t) = sexp_of_int x.id_dom
-  let hash (x : t) = hash_int x.id_dom
+  let hash (x : t) = x.id_dom
 end
 
 let find_relation tbl (a : 'a value) (b : 'a value) =
