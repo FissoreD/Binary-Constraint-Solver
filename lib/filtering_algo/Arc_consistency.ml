@@ -2,22 +2,18 @@ open Base
 module DLL = DoublyLinkedList
 
 module type Arc_consistency = sig
-  exception Not_in_support of string
-
   module DLL = DoublyLinkedList
 
   type 'a data_struct
   type 'a stack_operation
-  type 'a remove_in_domain = string Graph.value list
 
-  val name : string
   val print_data_struct : string data_struct -> unit
   val initialization : ?print:bool -> string Graph.graph -> string data_struct
 
   val revise :
     string Graph.value ->
     string data_struct ->
-    string stack_operation * string remove_in_domain
+    string stack_operation * string Graph.value list
 
   val back_track : string stack_operation -> unit
 end

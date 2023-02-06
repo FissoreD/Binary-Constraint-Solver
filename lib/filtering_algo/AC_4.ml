@@ -1,11 +1,7 @@
 open Base
 
 module AC_4 = struct
-  exception Not_in_support of string
-
   module DLL = DoublyLinkedList
-
-  type 'a remove_in_domain = string Graph.value list
 
   type 'a double_connection = {
     node : 'a Graph.value;
@@ -16,7 +12,6 @@ module AC_4 = struct
   type 'a data_struct = ('a Graph.value, 'a cell_type) Hashtbl.t
   type 'a stack_operation = 'a double_connection DLL.node list
 
-  let name = "AC-4"
   let loop_into_map f m = Hashtbl.iter m ~f:(fun v -> DLL.iter_value f v)
 
   let print_data_struct (c : 'a data_struct) =

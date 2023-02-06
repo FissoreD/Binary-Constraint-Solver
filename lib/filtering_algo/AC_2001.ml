@@ -1,16 +1,11 @@
 open Base
 
 module AC_2001 = struct
-  exception Not_in_support of string
-
   module DLL = DoublyLinkedList
 
-  type 'a remove_in_domain = string Graph.value list
   type 'a last = (Graph.ValueDomain.t, 'a Graph.value DLL.t) Hashtbl.t
   type 'a data_struct = { last : 'a last; graph : 'a Graph.graph }
   type 'a stack_operation = 'a Graph.value DLL.node list
-
-  let name = "AC-2001"
 
   let print_data_struct ({ last; _ } : 'a data_struct) =
     Hashtbl.iteri

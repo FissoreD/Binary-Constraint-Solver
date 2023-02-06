@@ -1,13 +1,9 @@
 module AC_3 : Arc_consistency.Arc_consistency = struct
-  exception Not_in_support of string
-
   module DLL = DoublyLinkedList
 
-  type 'a remove_in_domain = string Graph.value list
   type 'a stack_operation = unit
   type 'a data_struct = 'a Graph.graph
 
-  let name = "AC-3"
   let print_data_struct _ = print_endline "No data structure for AC-3"
   let initialization = Arc_consistency.clean_domains
 

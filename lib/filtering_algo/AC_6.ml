@@ -1,11 +1,7 @@
 open Base
 
 module AC_6 = struct
-  exception Not_in_support of string
-
   module DLL = DoublyLinkedList
-
-  type 'a remove_in_domain = string Graph.value list
 
   type 'a cell = {
     s_list : ('a Graph.value * 'a cell) DLL.t;
@@ -17,8 +13,6 @@ module AC_6 = struct
 
   type 'a stack_operation =
     ('a Graph.value * 'a cell) DLL.node list * 'a Graph.value DLL.node list
-
-  let name = "AC-6"
 
   let print_data_struct ((_, x) : 'a data_struct) : unit =
     Hashtbl.iteri
@@ -78,7 +72,7 @@ module AC_6 = struct
 
   let revise (node_to_remove : string Graph.value)
       ((graph, int_str) : 'a data_struct) :
-      string stack_operation * string remove_in_domain =
+      string stack_operation * string Graph.value list =
     let node = Hashtbl.find_exn int_str node_to_remove in
     let removed_in_domain = ref [] in
     let s_list_modif = ref [] in
