@@ -1,8 +1,7 @@
 \documentclass{rapport}
 
 \usepackage{variable}
-\usepackage{makePlots}
-
+\usepackage{environments}
 
 \begin{document}
 
@@ -101,15 +100,16 @@ The graph, the domains and the constraints are all implemented in the \textit{Gr
   open Base
   module DLL = DoublyLinkedList
   
-  type 'a relation = 'a DLL.node -> 'a DLL.node -> bool
-  type 'a table_type = (int * int) Hash_set.t
   type 'a domain = 'a DLL.t
-  
+  type 'a value = 'a DLL.node
+  type 'a relation = 'a value -> 'a value -> bool
+  type 'a table_type = (int * int) Hash_set.t
+
   type 'a graph = {
     tbl : 'a table_type;
     relation : 'a relation;
-    constraint_binding : (string, 'a domain DLL.t) Hashtbl.t;
-    domains : (string, 'a DLL.t) Hashtbl.t;
+    constraint_binding : ('a domain, 'a domain DLL.t) Hashtbl.t;
+    domains : 'a domain Hash_set.t;
   }
 \end{minted}
 
@@ -121,9 +121,8 @@ We can add constraints between values through the auxiliary function:
   let add_constraint (graph : 'a graph) d1 v1 d2 v2 =
     let add_if_absent (d1 : 'a domain) (d2 : 'a domain) =
       let dom =
-        Hashtbl.find_or_add graph.constraint_binding d1.id_dom
-          ~default:(fun _ ->
-            Hashtbl.add_exn graph.domains ~key:d1.name ~data:d1;
+        Hashtbl.find_or_add graph.constraint_binding d1 ~default:(fun _ ->
+            Hash_set.add graph.domains d1;
             DLL.empty "")
       in
       DLL.add_if_absent (fun e -> phys_equal e.value d2) d2 dom
@@ -169,12 +168,12 @@ Inside the functor we can find all the auxiliary attributes and functions allowi
 
 \begin{minted}{ocaml}
   type 'a stack_type :
-    (string AC.stack_operation * string DLL.node) option Stack.t
+    (string AC.stack_operation * string Graph.value) option Stack.t
   val backtrack_mem : 'a stack_type 
   val stack_op : 'a stack_type
-  val remove_by_node : ?verbose:bool -> string DLL.node -> unit
-  val propagation_remove_by_node : ?verbose:bool -> string DLL.node -> unit
-  val propagation_select_by_node : ?verbose:bool -> string DLL.node -> unit
+  val remove_by_node : ?verbose:bool -> string Graph.value -> unit
+  val propagation_remove_by_node : ?verbose:bool -> string Graph.value -> unit
+  val propagation_select_by_node : ?verbose:bool -> string Graph.value -> unit
   val back_track : unit -> unit
 \end{minted}
 
@@ -189,43 +188,295 @@ Inside the functor we can find all the auxiliary attributes and functions allowi
 \paragraph{propagation\_select\_by\_node:} is selected is a function that calls the \textit{propagation\_remove\_by\_node} for all the values inside $D_i$ that are different from the current value $v_i$. At each selection of a value $v_i$, we add to the \textit{backtrack\_mem} a pointer to the actual state of the solver in order to get it back during the backtrack step.
 
 \subsection{The Arc Consistency Algorithms}
+The Arc Consistency algorithms are modules respecting the signature:
 
-% \subsubsection{\ac{3}}
+\begin{minted}{ocaml}
+  module type Arc_consistency = sig
+    exception Not_in_support of string
 
-% \subsubsection{\ac{4}}
+    module DLL = DoublyLinkedList
 
-% \subsubsection{\ac{6}}
+    type 'a data_struct
+    type 'a stack_operation
+    type 'a remove_in_domain = string Graph.value list
 
-% \subsubsection{\ac{2001}}
+    val name : string
+    val print_data_struct : string data_struct -> unit
+    val initialization : ?print:bool -> string Graph.graph -> string data_struct
 
-% \section{The parser}
+    val revise :
+      string Graph.value ->
+      string data_struct ->
+      string stack_operation * string remove_in_domain
 
-% \section{Benchmark}
+    val back_track : string stack_operation -> unit
+  end
+\end{minted}
 
-% \subsection{AllIntervalSeries problem}
-% \subsubsection{Stats}
+In fact, an AC algorithm must have an initialization function allowing to clean the graph and instantiate the internal data structure, a revise function to remove a value $v_i$ from its domain and return the delta domains and the stack operation to be done during the backtrack to restore the internal state of the internal data structure.
 
-% \plotProblem{AllIntervalSeries}
+\subsubsection{\ac{3}}
 
-% \subsubsection{Generation of the problem}
-% \label{sec:allIntGen}
+This algorithm has no data structure, therefore, its only usefull implementation is the revise function witch is the mere application of the \ac{3} definition:
+
+\begin{minted}{ocaml}
+  let revise (v1 : 'a Graph.value) (graph : 'a data_struct) =
+    let delta_domains : 'a Graph.value list ref = ref [] in
+    DLL.iter_value
+      (DLL.iter (fun v2 ->
+           if DLL.not_exist (Graph.relation graph v2) v1.father then
+             delta_domains := v2 :: !delta_domains))
+      (Graph.get_constraint_binding graph v1.father);
+    ((), !delta_domains)
+\end{minted}
+
+We iterate over every node in the domains with a constraint binding with the domain of the value $v_1 \in D_1$ passed in argument of the function. If there is a value $v_j \in D_j$ with no support in $D_i$ then $v_j$ is appended to the list of delta domains.
+
+\subsubsection{\ac{4}}
+
+The internal structure of \ac{4} is complex and I have tried to make it as efficient as possible.
+
+\begin{minted}{ocaml}
+  type 'a double_connection = {
+    node : 'a Graph.value;
+    mutable assoc : 'a double_connection DLL.node option;
+  }
+
+  type 'a cell_type = ('a Graph.domain, 'a double_connection DLL.t) Hashtbl.t
+  type 'a data_struct = ('a Graph.value, 'a cell_type) Hashtbl.t
+  type 'a stack_operation = 'a double_connection DLL.node list
+\end{minted}
+
+\def\dc{\textit{double\_connection}}
+\def\ds{\textit{data\_struct}}
+
+The data structure is a \textit{Map} $\mathcal{M}_1$ associating to each value $v_i$ of each domain a second map $\mathcal{M_2}$. $\mathcal{M}_2$ is a map containing all the domains $D_j$ having a relation with $v_i$, to each domain $D_j$ we associate a list of \dc. A \dc\ is a record containing the value of $v_j \in D_j$ supporting $v_i$ and a pointer to the reciprocal \dc\ going from $v_j$ to $v_i$. This pointer is useful to speed the deletion of the support $v_j$ from the support of $v_i$ if $v_j$ is deleted. The revise function returns the \dc\ nodes removed from the internal data structure of \ac{4} and the list of delta domains.
+
+\subsubsection{\ac{6}}
+
+The \ac{6} algorithm is the one that caused me a lot of problem of implementation, since it works with both \textit{S-Lists} and the \textit{Last} value.
+
+\begin{minted}{ocaml}
+  type 'a cell = {
+    s_list : ('a Graph.value * 'a cell) DLL.t;
+    last : ('a Graph.domain, 'a Graph.value DLL.t) Hashtbl.t;
+  }
+  type 'a int_struct = ('a Graph.value, 'a cell) Hashtbl.t
+  type 'a data_struct = 'a Graph.graph * 'a int_struct
+  type 'a stack_operation =
+    ('a Graph.value * 'a cell) DLL.node list * 'a Graph.value DLL.node list
+\end{minted}
+
+The data structure of \ac{6} is made by the graph on one side and a \textit{Hashtbl} which associates to each value a record of type \textit{'a cell}. A \textit{cell} contains:
+\begin{itemize}
+  \item the \textit{s\_list} that is a \textit{dll} associating to each value of the graph a pointer to the \textit{cell} in the internal data structure. This pointer allow to fast find which last values should be modified when a value is deleted.
+  \item the last value that is a \textit{Hashtbl} associating a domain to its corresponding last value.
+\end{itemize}
+
+\subsubsection{\ac{2001}}
+
+\begin{minted}{ocaml}
+  type 'a remove_in_domain = string Graph.value list
+  type 'a last = (Graph.ValueDomain.t, 'a Graph.value DLL.t) Hashtbl.t
+  type 'a data_struct = { last : 'a last; graph : 'a Graph.graph }
+  type 'a stack_operation = 'a Graph.value DLL.node list
+\end{minted}
+
+The \ac{2001} data structure is particularly easy to implement: \ds\ contains the original graph and the \textit{field} allowing to improve the support search after the deletion of a value $v_i \in D_i$. Inside the \textit{last} field, we find an \textit{Hashtbl} associating to each couple $v_i, D_j$ (where $D_j$ is a domain with a constraint with $D_i$) the last support of the node $v_i$ in $D_j$. When a node $v_i$ is remove in $D_i$, we lopp for all the domains $D_i$ with a constraint with $D_i$ and for all value $v_j\in D_j$ if the last support of $v_j$ is $v_i$ then we look for a new value $v_i' \in D_i$ starting from $v_i$ supporting $v_j$. If this support does not exists then $v_j$ will be returned with the delta domains, otherwise $v_i'$ will replace the last of $v_j$.
+
+\section{Run the project}
+\label{sec:arg}
+
+In order to simplify the interaction with the solver, the main program accepts a list of optional parameters to set the input of the problem, the verbose print mode, the arc consistency mode \etc.
+
+Here a list of the parameters and their behavior can be printed in the \textit{stout} passing the\textit{--help} option.
+
+Here the full list of commands:
+
+\begin{minted}{text}
+  -ac          Set the filtering algo among 3, 4, 6, 2001 - default : 3
+  -v           Set the verbose mode
+  -f           Set the input file
+  -first       Stop after the first valid solution
+  -queens [N]  Set the size of the queen solver (min N: 5)
+  -all-int [N] Set the size of the allIntervalSeries solver (min N: 3)
+  -only-sol    Only print the number of fails and solutions
+  -only-valid  Print only the valid solutions
+  -d           Debug mode
+  -print-inp   Print the input graph
+  -help        Display this list of options
+  --help       Display this list of options
+\end{minted}
+
+Note that the \texttt{all-int} problem is run if you pass both the \texttt{all-int} and the \textit{queens} parameters.
+
+The \texttt{-f} parameter takes a file following the grammar proposed in \cref{sec:parser}.
+
+\subsection{The parser}
+\label{sec:parser}
+
+A simple parser have been added to the main in order to easily enter file for texting the solver. A valid file to be parsed respect the following grammar:
+
+\begin{minted}{text}
+  P := variables* "\n--\n" constraints*
+  variables := name ":" (domains " ")* "\n"  
+  constraint := variable " " value " " variable " " value
+
+  name := [a-zA-Z]*
+  domains := [a-zA-Z]*
+\end{minted}
+
+An example of file input can be seen in \cref{sec:input_ex}
 
 
-% \subsection{Queens problem}
-% \subsubsection{Stats}
+\subsection{Example of commands}
+
+\begin{itemize}
+  \item \texttt{dune exec -- main -queens 3 -ac 3 -only-sol}: run the 3-queens problem with the \ac{3} arc consistency filter and print only the solutions on the console. Result:\\
+        \begin{minted}{text}
+  ------------------------------
+  The number of fails is 0
+  The number of solutions is 6
+  Total Time: 0.000068
+  Time of backtracks: 0.000003
+  Time of revise: 0.000013
+  ------------------------------
+  \end{minted}
+  \item \texttt{dune exec -- main -f ./graphs/input\_4.txt -ac 2001 -v} produces the result proposed in \cref{sec:output_ex}\footnote{The file \texttt{./graphs/input\_4.txt} is the one depicted in \cref{sec:input_ex}}
+  \item the bash executables \texttt{./allInt.sh} and \texttt{./queens.sh} run respectively the \textit{All Interval Series} and the \textit{N-Queens} problem for $n$ going from $0$ to respectively $12$ and $11$. Not that both executable accept two integers in parameter changing the default bound of computation. For example, \texttt{./allInt.sh 3 7} will launch the \textit{All Interval Series} for $n$ from $3$ to $7$.
+
+\end{itemize}
 
 
-% \plotProblem{Queens}
 
-% \subsubsection{Generation of the problem}
+\section{Benchmark}
 
-% \section{Run the project}
-% \label{sec:arg}
+\subsection{AllIntervalSeries problem}
+\subsubsection{Stats}
 
-% \section{Conclusion}
+\plotProblem{AllIntervalSeries}
+
+\subsubsection{Generation of the problem}
+\label{sec:allIntGen}
+
+\newpage
+
+\subsection{Queens problem}
+\subsubsection{Stats}
+
+
+\plotProblem{Queens}
+
+\subsubsection{Generation of the problem}
+
+
+
+\section{Conclusion}
 % \nocite{*}
 % \section{References}
 % \printbibliography[heading=none]
-% \newpage
+\newpage
+
+\appendix
+
+\section{An output example}
+
+\subsection{Example file to parse}
+\label{sec:input_ex}
+\begin{minted}{text}
+  d1: a b c 
+  d2: 2 3 4 5
+  d3: e f g h
+  --
+  d1 b d2 2;
+  d1 c d2 2;
+  d1 c d2 3;
+  d2 2 d3 f;
+  d2 3 d3 e;
+  d2 3 d3 f;
+  d2 3 d3 g;
+  d2 4 d3 e;
+  d2 5 d3 e;
+\end{minted}
+
+
+\subsection{Example of output}
+\label{sec:output_ex}
+
+\begin{minted}{text}
+  Initialization : removing a from d1  
+Initialization : removing 4 from d2
+Initialization : removing 5 from d2
+Initialization : removing h from d3
+The data structure is:
+node : (d2,2), last : (d1,b) 
+node : (d2,2), last : (d3,f) 
+node : (d3,f), last : (d2,2) 
+node : (d1,c), last : (d2,2) 
+node : (d1,b), last : (d2,2) 
+node : (d3,e), last : (d2,3) 
+node : (d3,g), last : (d2,3) 
+node : (d2,3), last : (d1,c) 
+node : (d2,3), last : (d3,e) 
+The domains are
+-- Start Domains --
+d1 : b;c;
+d2 : 2;3;
+d3 : e;f;g;
+--- End Domains ---
+-----------------------------
+--> Selecting b from d1
+* Removing c from d1
+List of values having no more support = [(d2,3)]
+* Removing 3 from d2
+List of values having no more support = [(d3,g), (d3,e)]
+* Removing g from d3
+List of values having no more support = []
+* Removing e from d3
+List of values having no more support = []
+--> Selecting 2 from d2
+--> Selecting f from d3
+A solution : [(d3,f), (d2,2), (d1,b)] !!
+--> Selecting c from d1
+* Removing b from d1
+List of values having no more support = []
+--> Selecting 2 from d2
+* Removing 3 from d2
+List of values having no more support = [(d3,g), (d3,e)]
+* Removing g from d3
+List of values having no more support = []
+* Removing e from d3
+List of values having no more support = []
+--> Selecting f from d3
+A solution : [(d3,f), (d2,2), (d1,c)] !!
+--> Selecting 3 from d2
+* Removing 2 from d2
+List of values having no more support = []
+--> Selecting e from d3
+* Removing f from d3
+List of values having no more support = []
+* Removing g from d3
+List of values having no more support = []
+A solution : [(d3,e), (d2,3), (d1,c)] !!
+--> Selecting f from d3
+* Removing e from d3
+List of values having no more support = []
+* Removing g from d3
+List of values having no more support = []
+A solution : [(d3,f), (d2,3), (d1,c)] !!
+--> Selecting g from d3
+* Removing e from d3
+List of values having no more support = []
+* Removing f from d3
+List of values having no more support = []
+A solution : [(d3,g), (d2,3), (d1,c)] !!
+------------------------------
+The number of fails is 0
+The number of solutions is 5
+Total Time: 0.000270
+Time of backtracks: 0.000002
+Time of revise: 0.000015
+------------------------------
+\end{minted}
 
 \end{document}
