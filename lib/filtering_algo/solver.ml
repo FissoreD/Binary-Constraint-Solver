@@ -78,6 +78,9 @@ module Make (AC : Arc_consistency.Arc_consistency) : Solver = struct
 
   let remove_by_node ?(verbose = false) (node : 'a Graph.value) =
     if node.is_in then (
+      if verbose then
+        MyPrint.print_color_str "red"
+          (Printf.sprintf " * Removing %s from %s" node.value node.father.name);
       DLL.remove node;
       let t = Unix.gettimeofday () in
       let stack_op, unsupported = AC.revise node (get_data_struct ()) in
@@ -85,8 +88,6 @@ module Make (AC : Arc_consistency.Arc_consistency) : Solver = struct
       add_stack (stack_op, node);
       delta_domain := unsupported;
       if verbose then (
-        MyPrint.print_color_str "red"
-          (Printf.sprintf " * Removing %s from %s" node.value node.father.name);
         Stdio.print_string "List of values having no more support = ";
         print_list_nodes unsupported);
       if DLL.is_empty node.father then raise Empty_domain)

@@ -6,7 +6,7 @@ module AC_2001 = struct
   module DLL = DoublyLinkedList
 
   type 'a remove_in_domain = string Graph.value list
-  type 'a last = (Graph.ValuePair.t, 'a Graph.value DLL.t) Hashtbl.t
+  type 'a last = (Graph.ValueDomain.t, 'a Graph.value DLL.t) Hashtbl.t
   type 'a data_struct = { last : 'a last; graph : 'a Graph.graph }
   type 'a stack_operation = 'a Graph.value DLL.node list
 
@@ -14,7 +14,7 @@ module AC_2001 = struct
 
   let print_data_struct ({ last; _ } : 'a data_struct) =
     Hashtbl.iteri
-      ~f:(fun ~key:((e, _) : Graph.ValuePair.t) ~data ->
+      ~f:(fun ~key:((e, _) : Graph.ValueDomain.t) ~data ->
         Stdio.printf "node : %s, support : " (Arc_consistency.make_name e);
         DLL.iter_value
           (fun (v : 'a Graph.value) ->
@@ -26,7 +26,7 @@ module AC_2001 = struct
   let initialization ?(print = false) (graph : 'a Graph.graph) =
     let exception Found in
     let graph = Arc_consistency.clean_domains ~print graph in
-    let last : string last = Hashtbl.create (module Graph.ValuePair) in
+    let last : string last = Hashtbl.create (module Graph.ValueDomain) in
 
     let domain_list = Graph.list_domains graph in
     List.iter

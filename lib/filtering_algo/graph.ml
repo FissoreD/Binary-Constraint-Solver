@@ -21,7 +21,7 @@ module Value = struct
   let hash (x : t) = x.id
 end
 
-module ValuePair = struct
+module ValueDomain = struct
   type t = string value * string domain
 
   let compare ((a, b) : t) ((c, d) : t) =
