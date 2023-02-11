@@ -4,19 +4,21 @@ A report of this project can be found [here](report/.aux/main.pdf)
 
 ## Command options
 
+```
 A constraint solver using AC-[3,4,6,2001] filtering algos
   -ac          Set the filtering algo among 3, 4, 6, 2001 - default : 3
   -v           Set the verbose mode
   -f           Set the input file
-  -first       Finds only the first solution if it exists
-  -queens      Set the size of the queen solver
-  -all-int     Set the size of the allIntervalSeries solver
-  -only-sol    Only print the number of fails and solutions
+  -first       Stop after the first valid solution
+  -queens [N]  Set the size of the queen solver (min N: 5)
+  -all-int [N] Set the size of the allIntervalSeries solver (min N: 3)
+  -only-stats  Only print the number of fails and solutions
   -only-valid  Print only the valid solutions
   -d           Debug mode
   -print-inp   Print the input graph
   -help        Display this list of options
   --help       Display this list of options
+```
 
 command example:
 

@@ -8,27 +8,34 @@ module AC_6 = struct
     last : ('a Graph.domain, 'a Graph.value DLL.t) Hashtbl.t;
   }
 
-  type 'a int_struct = ('a Graph.value, 'a cell) Hashtbl.t
+  type 'a int_struct =
+    ('a Graph.value, 'a cell * string DLL.node DLL.t) Hashtbl.t
+
   type 'a data_struct = 'a Graph.graph * 'a int_struct
 
   type 'a stack_operation =
     ('a Graph.value * 'a cell) DLL.node list * 'a Graph.value DLL.node list
 
   let print_data_struct ((_, x) : 'a data_struct) : unit =
-    Hashtbl.iter
-      ~f:(fun data ->
+    Hashtbl.iteri
+      ~f:(fun ~key ~data ->
+        let data = fst data in
+        Stdio.printf "%s last is : " (Arc_consistency.make_name key);
+
         Hashtbl.iter
           ~f:
             (DLL.iter_value (fun e ->
                  Stdio.printf "%s " (Arc_consistency.make_name e)))
           data.last;
-        Stdio.printf " the s list is : ";
+        Stdio.printf "and the s list is : ";
         DLL.iter_value
           (fun data ->
             Stdio.printf "%s " (Arc_consistency.make_name (fst data)))
           data.s_list;
         Stdio.print_endline "")
       x
+
+  let find (ds : string int_struct) (v : 'a DLL.node) = Hashtbl.find_exn ds v
 
   let initialization ?(verbose = false) graph : 'a data_struct =
     let graph = Arc_consistency.clean_domains ~verbose graph in
@@ -39,7 +46,8 @@ module AC_6 = struct
     in
     Graph.loop_domains
       (DLL.iter (fun v ->
-           Hashtbl.add_exn data_struct ~key:v ~data:(make_empty_cell ())))
+           Hashtbl.add_exn data_struct ~key:v
+             ~data:(make_empty_cell (), DLL.empty "")))
       graph;
 
     let exception Found in
@@ -47,17 +55,18 @@ module AC_6 = struct
       (fun d1 ->
         DLL.iter
           (fun v1 ->
-            let ds1 = Hashtbl.find_exn data_struct v1 in
+            let ds1 = find data_struct v1 in
             DLL.iter_value
-              (fun d2 ->
+              (fun (d2 : string Graph.domain) ->
                 try
                   DLL.iter
                     (fun v2 ->
                       if Graph.relation graph v1 v2 then (
-                        let ds2 = Hashtbl.find_exn data_struct v2 in
-                        DLL.append (v1, ds1) ds2.s_list;
+                        let ds2 = find data_struct v2 in
+                        DLL.append (v1, fst ds1) (fst ds2).s_list;
                         Hashtbl.add_exn ~key:d2 ~data:(DLL.singleton "" v2)
-                          ds1.last;
+                          (fst ds1).last;
+                        DLL.append v1 (snd ds2);
                         raise Found))
                     d2
                 with Found -> ())
@@ -73,21 +82,21 @@ module AC_6 = struct
     let removed_in_domain = ref [] in
     let s_list_modif = ref [] in
     let last_modif = ref [] in
-    let father = node_to_remove.father in
-    DLL.iter_value
-      (fun ((value, { last; _ }) as supported) ->
+    DLL.iter
+      (fun v ->
+        let (value, supp_dom) : 'a Graph.value * 'a cell = v.value in
+        let last = Hashtbl.find_exn supp_dom.last node_to_remove.father in
         match
           DLL.find_from_next (Graph.relation graph value) node_to_remove
         with
         | None -> removed_in_domain := value :: !removed_in_domain
         | Some next_supp ->
-            let last = Hashtbl.find_exn last father in
-            let new_last = (Hashtbl.find_exn int_str next_supp).s_list in
-            DLL.append supported new_last;
+            let new_last = Hashtbl.find_exn int_str next_supp in
+            DLL.append v.value (fst new_last).s_list;
             DLL.prepend next_supp last;
-            s_list_modif := DLL.get_last new_last :: !s_list_modif;
+            s_list_modif := DLL.get_last (fst new_last).s_list :: !s_list_modif;
             last_modif := DLL.get_first last :: !last_modif)
-      node.s_list;
+      (fst node).s_list;
     ((!s_list_modif, !last_modif), !removed_in_domain)
 
   let back_track (appended_in_support, modif_last) =

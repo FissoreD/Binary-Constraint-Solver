@@ -7,7 +7,7 @@ module type Solver = sig
 
   val find_solution :
     ?debug:bool ->
-    ?count_only:bool ->
+    ?only_stats:bool ->
     ?only_valid:bool ->
     ?verbose:bool ->
     ?one_sol:bool ->
@@ -67,7 +67,7 @@ module Make (AC : Arc_consistency.Arc_consistency) : Solver = struct
   let print_data_struct () = AC.print_data_struct (get_data_struct ())
 
   let initialization ?(verbose = false) graph' =
-    internal_data_struct := Some (AC.initialization graph');
+    internal_data_struct := Some (AC.initialization ~verbose graph');
     graph := Some graph';
     if verbose then (
       Stdio.print_endline "The data structure is:";
@@ -118,7 +118,7 @@ module Make (AC : Arc_consistency.Arc_consistency) : Solver = struct
     done;
     time_of_backtracks := Unix.gettimeofday () -. t +. !time_of_backtracks
 
-  let find_solution ?(debug = false) ?(count_only = false) ?(only_valid = false)
+  let find_solution ?(debug = false) ?(only_stats = false) ?(only_valid = false)
       ?(verbose = false) ?(one_sol = false) () =
     let exception Stop_One_Sol in
     let domains =
@@ -139,7 +139,7 @@ module Make (AC : Arc_consistency.Arc_consistency) : Solver = struct
     let time = Unix.gettimeofday () in
     let rec aux sol : string Graph.domain list -> unit = function
       | [] ->
-          if not count_only then print_sol sol;
+          if not only_stats then print_sol sol;
           if one_sol then raise Stop_One_Sol;
           Int.incr number_of_solutions
       | hd :: tl ->
@@ -152,7 +152,7 @@ module Make (AC : Arc_consistency.Arc_consistency) : Solver = struct
                  aux sol tl
                with Empty_domain ->
                  Int.incr number_of_fails;
-                 if (not count_only) && not only_valid then print_fail sol);
+                 if (not only_stats) && not only_valid then print_fail sol);
               back_track ())
             hd
     in

@@ -22,8 +22,8 @@ module AC_4 = struct
           data;
         Stdio.print_endline "")
 
-  let initialization ?(print = false) (graph : 'a Graph.graph) =
-    let graph = Arc_consistency.clean_domains ~print graph in
+  let initialization ?(verbose = false) (graph : 'a Graph.graph) =
+    let graph = Arc_consistency.clean_domains ~verbose graph in
     let data_struct : 'a data_struct = Hashtbl.create (module Graph.Value) in
     Graph.loop_domains
       (fun d ->

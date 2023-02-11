@@ -7,11 +7,11 @@ let make_domains n =
   (* Add domain v *)
   for dom_v1 = 1 to n - 1 do
     Buffer.add_string buf_head (Printf.sprintf "v%d : " dom_v1);
-    for val_v1 = 0 to n - 1 do
+    for val_v1 = 1 to n - 1 do
       Buffer.add_string buf_head (Printf.sprintf "%d " val_v1);
       (* The all diff on v *)
       for dom_v2 = 1 to n - 1 do
-        for val_v2 = 0 to n - 1 do
+        for val_v2 = 1 to n - 1 do
           if dom_v1 <> dom_v2 && val_v1 <> val_v2 then
             Buffer.add_string buf_tail
               (Printf.sprintf "v%d %d v%d %d\n" dom_v1 val_v1 dom_v2 val_v2)
@@ -34,15 +34,16 @@ let make_domains n =
   (* The absolute value constraints *)
   for aux_i = 1 to n - 1 do
     for value = 1 to n * n do
-      Buffer.add_string buf_tail
-        (Printf.sprintf "aux%d %d %d %d\n" aux_i value aux_i
-           ((value - 1) mod n));
-      Buffer.add_string buf_tail
-        (Printf.sprintf "aux%d %d %d %d\n" aux_i value (aux_i + 1)
-           ((value - 1) / n));
-      Buffer.add_string buf_tail
-        (Printf.sprintf "aux%d %d v%d %d\n" aux_i value aux_i
-           (abs (((value - 1) / n) - ((value - 1) mod n))))
+      if abs (((value - 1) / n) - ((value - 1) mod n)) > 0 then (
+        Buffer.add_string buf_tail
+          (Printf.sprintf "aux%d %d %d %d\n" aux_i value aux_i
+             ((value - 1) mod n));
+        Buffer.add_string buf_tail
+          (Printf.sprintf "aux%d %d %d %d\n" aux_i value (aux_i + 1)
+             ((value - 1) / n));
+        Buffer.add_string buf_tail
+          (Printf.sprintf "aux%d %d v%d %d\n" aux_i value aux_i
+             (abs (((value - 1) / n) - ((value - 1) mod n)))))
     done
   done;
 

@@ -1,7 +1,7 @@
 dune build; 
 msg="All Interval Series for : "
 
-i="${1:-3}"
+i="${1:-1}"
 stop="${2:-11}"
 
 algo=(3 4 2001 6);

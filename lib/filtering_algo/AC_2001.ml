@@ -10,7 +10,7 @@ module AC_2001 = struct
   let print_data_struct ({ last; _ } : 'a data_struct) =
     Hashtbl.iteri
       ~f:(fun ~key:((e, _) : Graph.ValueDomain.t) ~data ->
-        Stdio.printf "node : %s, support : " (Arc_consistency.make_name e);
+        Stdio.printf "node : %s, last : " (Arc_consistency.make_name e);
         DLL.iter_value
           (fun (v : 'a Graph.value) ->
             Stdio.printf "%s " (Arc_consistency.make_name v))
@@ -18,9 +18,9 @@ module AC_2001 = struct
         Stdio.print_endline "")
       last
 
-  let initialization ?(print = false) (graph : 'a Graph.graph) =
+  let initialization ?(verbose = false) (graph : 'a Graph.graph) =
     let exception Found in
-    let graph = Arc_consistency.clean_domains ~print graph in
+    let graph = Arc_consistency.clean_domains ~verbose graph in
     let last : string last = Hashtbl.create (module Graph.ValueDomain) in
 
     let domain_list = Graph.list_domains graph in
