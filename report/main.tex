@@ -342,8 +342,8 @@ An example of file input can be seen in \cref{sec:input_ex}
   Time of revise: 0.000013
   ------------------------------
   \end{minted}
-  \item \texttt{dune exec -- main -f ./graphs/input\_4.txt -ac 2001 -v} produces the result proposed in \cref{sec:output_ex}\footnote{The file \texttt{./graphs/input\_4.txt} is the one depicted in \cref{sec:input_ex}}
-  \item the bash executables \texttt{./allInt.sh} and \texttt{./queens.sh} run respectively the \textit{All Interval Series} and the \textit{N-Queens} problem for $n$ going from $0$ to respectively $12$ and $11$. Not that both executable accept two integers in parameter changing the default bound of computation. For example, \texttt{./allInt.sh 3 7} will launch the \textit{All Interval Series} for $n$ from $3$ to $7$.
+  \item \texttt{dune exec -- main -f ./graphs/input\_4.txt -ac 2001 -v} produces the result proposed in \cref{sec:output_ex}\footnote{The file \texttt{./graphs/input\_4.text} is the one depicted in \cref{sec:input_ex}}
+  \item the bash executables \texttt{./allInt.sh} and \texttt{./queens.sh} run respectively the \allint\ and the \queens\ problem for $n$ going from $0$ to respectively $12$ and $11$. Not that both executable accept two integers in parameter changing the default bound of computation. For example, \texttt{./allInt.sh 3 7} will launch the \allint\ for $n$ from $3$ to $7$.
 
 \end{itemize}
 
@@ -351,30 +351,82 @@ An example of file input can be seen in \cref{sec:input_ex}
 
 \section{Benchmark}
 
-\subsection{AllIntervalSeries problem}
-\subsubsection{Stats}
+In this section I will provide a brief performance comparison of the for filtering algorithm on the \allint\ and the \queens\ problem. Of course, the performances of each \textit{AC} algorithm will also depend on the efficiency of my implementation, since I have tried to optimize every algorithm using different programming strategy, but in all of them I use \textit{Hash-Tables} in the data structures and therefore the performances will depend on how many time the algorithm is trying to access an element of the \textit{Hash-Table}.
 
-\plotProblem{AllIntervalSeries}
+\subsection{The \allint\ problem}
+
+\begin{description}
+  \item[The problem:] Given an integer $n$, the goal is to find a vector $s = (s_1, \dots, s_n)$ such that $s$ is a permutation of $\mathbb{Z}_n = 0, 1, \dots, n - 1$ and the interval vector $v = (|s_2-s_1|, |s_3-s_2|,\dots, |s_n-s_{n-1}|)$ is a permutation of $\mathbb{Z}_n = 1, \dots, n - 1$\footnote{Description taken from \url{https://www.csplib.org/Problems/prob007/}}
+\end{description}
 
 \subsubsection{Generation of the problem}
 \label{sec:allIntGen}
 
-\newpage
+In order to test the \allint\ for a given parameter $n$, I have started by transforming the problem in a binary constraint problem (the absolute value is a ternary operator). As we have seen in our course, I have reasoned in term of a table indexed by an auxiliary parameter.
 
-\subsection{Queens problem}
+The generated problem is represented on the form of a text parsable by the parser detailed in \cref{sec:parser}.
+
+The variables:
+
+\begin{itemize}
+  \item The vector $v$ gives the variables $v_1, \dots, v_{n-1}$ each of domain $1, \dots, n - 1$
+  \item The vector $s$ gives the variables $v_1, \dots, v_{n}$ each of domain $0, \dots, n - 1$
+  \item The auxiliary variables build the vector $aux = (aux_1, \dots, aux_{n-1})$ each $aux_i$ having the domain $1, \dots, n^n$.
+\end{itemize}
+
+The constraints:
+\begin{itemize}
+  \item The \textit{AllDiff} on $v$: each value $val_i$ of $v_i$ supports a variable $val_j$ of $v_j$ if $val_i \neq val_j$
+  \item The \textit{AllDiff} on $s$: same reasoning for the variables of $v$
+  \item Each variable $aux_i$ support a $3$-tuple of variables: $s_{i+1}, s_i$ and $v_i$ if the absolute value of the difference between the value of $s_{i+1}$ and the value of $s_i$ equals the value of $v_i$.
+\end{itemize}
+
+An example of a generated print of this problem can be displayed through the command \texttt{dune exec -- main -all-int 3 -ac 3 -print-inp} for $n = 3$. The input of this problem is depicted in \cref{sec:allint_inp}
+
+
 \subsubsection{Stats}
 
+\plotProblem{AllIntervalSeries}
 
-\plotProblem{Queens}
+The statistics of the run of the \allint\ problem are show in \cref{img:AllIntervalSeries}. We see that \ac{4} pass a lot of time doing backtracks, since it is the filtering performing the most modifications on the internal data structure, but the time spent in backtracks is negligible compared to the revise time, since, the \textit{tot time} curve (\cref{img:AllIntervalSeries-tot time}) has the same shape of the \textit{revise time} curve \textit{revise time} (\cref{img:AllIntervalSeries-revise time}).
+
+We can finally see that \ac{4} outperforms the other filtering algorithms since its data structure allows to efficiently know if a value is still supported. On the other hans, \ac{3} has no other way to loop over all the values of each domains, and since, for example, the domain of the $aux$ variables can be potentially huge but strongly constraint, \ac{3} must loop a lot over this domain to know if a value $v_i$ or $s_i$ has a support in $aux_i$.
+
+The other two algorithms, \ac{6} and \ac{2001} have better performances then \ac{3}, because, again, they both keep a trace of the support of each domain allowing to speed up the overall performance.
+
+
+\subsection{The \queens\ problem}
+
+\begin{description}
+  \item[The problem:] Given an integer $n$, representing the size of a $n \times n$ chessboard. The goal is to place a queen on each column of the chessboard such that there is no two queens on the same row and the same diagonal\footnote{Description taken from \url{https://www.csplib.org/Problems/prob054/}}
+\end{description}
 
 \subsubsection{Generation of the problem}
 
+This problem is already a binary constraint satisfaction problem.
+The variables:
+\begin{itemize}
+  \item The vector of columns $c = (c_1, \dots, c_n)$ of domains $1, \dots, n$
+\end{itemize}
 
+The constraints:
+\begin{itemize}
+  \item Given two columns $c_i, c_j \in c$, the value $val_i$ of $c_i$ supports the value $val_j$ of $c_j$ if $val_i \neq val_j$ (the \textit{AllDiff} on the rows) \textit{and} $|val_i - val_j| \neq |i - j|$ (the \textit{AllDiff} on the diagonals).
+\end{itemize}
+
+An input example of this problem with $n = 3$ is provided in \cref{sec:queens_inp}
+
+\subsubsection{Stats}
+\plotProblem{Queens}
+
+The statistics of the \queens\ problem are given in \cref{img:Queens}. In this implementation, we can see that \ac{4} has again good performances. A big difference wrt the \allint\ results is that \ac{3} has a good behavior since it is the second fastest algorithm. This is mainly because the constraints in the \queens\ problem are homogeneously distributed for each variable: this is due to the high number of symmetries of the problem. \ac{6} has by far the slowest performances. I think this is due to its implementation that is not very efficient. I have tried to make a lot of variation of implementation for this filtering algorithm but I have not been able to improve it any more. This algorithm is implemented making a lot interaction with the \textit{Hash-Table} which is known to be slow.
+
+Interestingly, we can see that \ac{2001} is slower that \ac{3}, even if \ac{2001} stores the information about the last support of each value. This is due to the use of \textit{Hash-Tables} which, again, slows down the performances.
 
 \section{Conclusion}
-% \nocite{*}
-% \section{References}
-% \printbibliography[heading=none]
+
+In my opinion, even if it stores a lot of data \ac{4} is a good algorithm: in a first time it may be difficult to implement its data structure, in my case, I have used a lot the \textit{dll} data structure and lots of pointer going from one side to the other of related variables, but, in a second time, we can see its good performances. This project allowed me to understand deeply the principle of backtracking a state in dynamic scenario such has the propagation of filtering values from domains. Moreover, since I wanted to improve the speed of the algorithms, I have been faced to the low performances of the standard libraries of \textit{OCaml} and I have finally been able to use and understand the \textit{Base} module of this programming language.
+
 \newpage
 
 \appendix
@@ -477,6 +529,126 @@ Total Time: 0.000270
 Time of backtracks: 0.000002
 Time of revise: 0.000015
 ------------------------------
+\end{minted}
+
+\section{Concrete problems' inputs}
+\subsection{A \allint\ input}
+\label{sec:allint_inp}
+
+\begin{minted}{text}
+v1 : 1 2                             
+v2 : 1 2 
+aux1 : 1 2 3 4 5 6 7 8 9 
+aux2 : 1 2 3 4 5 6 7 8 9 
+1: 0 1 2 
+2: 0 1 2 
+3: 0 1 2 
+--
+# The all diff on the v vector
+v1 1 v2 2
+v1 2 v2 1
+v2 1 v1 2
+v2 2 v1 1
+# the table constraint
+aux1 2 1 1
+aux1 2 2 0
+aux1 2 v1 1
+aux1 3 1 2
+aux1 3 2 0
+aux1 3 v1 2
+aux1 4 1 0
+aux1 4 2 1
+aux1 4 v1 1
+aux1 6 1 2
+aux1 6 2 1
+aux1 6 v1 1
+aux1 7 1 0
+aux1 7 2 2
+aux1 7 v1 2
+aux1 8 1 1
+aux1 8 2 2
+aux1 8 v1 1
+aux2 2 2 1
+aux2 2 3 0
+aux2 2 v2 1
+aux2 3 2 2
+aux2 3 3 0
+aux2 3 v2 2
+aux2 4 2 0
+aux2 4 3 1
+aux2 4 v2 1
+aux2 6 2 2
+aux2 6 3 1
+aux2 6 v2 1
+aux2 7 2 0
+aux2 7 3 2
+aux2 7 v2 2
+aux2 8 2 1
+aux2 8 3 2
+aux2 8 v2 1
+# The all diff on the s vector
+1 0 2 1
+1 0 2 2
+1 0 3 1
+1 0 3 2
+1 1 2 0
+1 1 2 2
+1 1 3 0
+1 1 3 2
+1 2 2 0
+1 2 2 1
+1 2 3 0
+1 2 3 1
+2 0 1 1
+2 0 1 2
+2 0 3 1
+2 0 3 2
+2 1 1 0
+2 1 1 2
+2 1 3 0
+2 1 3 2
+2 2 1 0
+2 2 1 1
+2 2 3 0
+2 2 3 1
+3 0 1 1
+3 0 1 2
+3 0 2 1
+3 0 2 2
+3 1 1 0
+3 1 1 2
+3 1 2 0
+3 1 2 2
+3 2 1 0
+3 2 1 1
+3 2 2 0
+3 2 2 1
+\end{minted}
+
+\subsection{A \queens\ input}
+\label{sec:queens_inp}
+
+\begin{minted}{text}
+1:1 2 3                              
+2:1 2 3 
+3:1 2 3 
+--
+1 1 3 2
+1 1 2 3
+2 1 1 3
+2 1 3 3
+3 1 1 2
+3 1 2 3
+1 2 3 1
+1 2 3 3
+3 2 1 1
+3 2 1 3
+1 3 2 1
+1 3 3 2
+2 3 1 1
+2 3 3 1
+3 3 2 1
+3 3 1 2
 \end{minted}
 
 \end{document}
