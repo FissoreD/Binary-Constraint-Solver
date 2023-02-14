@@ -9,58 +9,56 @@
 
 \section{Introduction}
 
-The goal of this project is to realize a binary constraint solver based on the arc consistency filtering algorithms \ac{3}, \ac{4}, \ac{6}, \ac{2001}. As we have seen in the Constraint Programming course provided by Mr. Régin, a constraint satisfaction problem is a problem made of a set of variables $V = \{V_1, ..., V_n\}$ such that each variable $V_i$ is defined over a domain $D_i$. A domain is a set of values that can be assigned to the corresponding variable.
+The goal of this project is to realize a binary constraint solver based on the arc consistency filtering algorithms \ac{3}, \ac{4}, \ac{6}, \ac{2001}. As we have seen in our Constraint Programming course provided by Mr. Régin, a constraint satisfaction problem is a problem made of a set of variables $V = \{V_1, ..., V_n\}$ such that each variable $V_i$ is defined over a domain $D_i$. A domain is a set of values that can be assigned to its corresponding variable.
 
-A constraint is a relations between a set of values taken from some of the given domains such that each domain of each constraint appear at most one time.
+A constraint is a relation between a set of values taken from the domains domains such that, in each constraint, each domain appears at most one time.
 
-Let $n$ be the number of variables of the problem, the constraint problem can be represented as an undirected $n$-partite hyper-graph $G = (V, E)$ where each partition of the graph is made of the values of each domain. $V$ is made of all the values of each variable and $E$ represent the constraints of the graph.
+Let $n$ be the number of variables of the problem, the constraint problem can be represented as an undirected $n$-partite hyper-graph $G = (V, E)$ where each partition of the graph is made of the values of each domain. $V$ is made of all the values of each variable and $E$ represents the constraints of the graph.
 
 \begin{example}
   \label{ex:p1}
   If we have the variables $V_1 = \{1, 2, 3\}$ and $V_2 = \{1, 2\}$ and $V_3 = \{0, 1, 2\}$ and the constraint $C_1 \triangleq |v_1 - v_2| = v_3$, we build the hyper-graph $G$ made of the vertices $\{1_{V_1}, 2_{V_1}, 3_{V_1}, 1_{V_2}, 2_{V_2}, 0_{V_3}, 1_{V_3}, 2_{V_3}\}$ and the hyper-edges are made such that the constraint $C_1$ is respected, for instance we can build the multi-edge $e = \{1_{V_1}, 1_{V_2}, 0_{V_3}\}$ since the absolute value of the difference between the value $1$ from $V_1$ and the value $1$ from $V_2$ gives $0$ in $V_3$.
 \end{example}
 
-A solution of a constraint satisfaction problem is a simple-path passing exactly one time through each partition of the hyper-graph, this is an equivalent for the classic definition which says that a solution is a the choice of a value for each variable such that every constraint are satisfied.
+A value $v_i \in D_i$ of the variable $V_i$ is supported in the hyper-graph if for each constraint $c_i$ involving the domains $D(C) = \{D_1, \dots, D_n\}$ we have $D_i \in D(C)$ and for each domain $D_j \in D(C)$ there exists a value $v_j \in D_j$ having a relation with $v_i$. A not-supported value can be removed from its domains since it cannot be part of a solution of the problem.
 
-A value $v_i \in D_i$ of the variable $V_i$ is supported in the hyper-graph if for each constraint $c_1$ involving the domains $D(C) = \{d1, \dots, d_n\}$ we have $d_i \in D(C)$ and for each domain $d_j \in D(C)$ there exists a value $v_j \in D_j$ having a relation with $v_i$. A not-supported value can be removed from its domains since it cannot be part of a solution of the problem.
-
-We can find a solution of a constraint problem by choosing an arbitrary value $v_i$ from a domain $D_i$ and removing all the other values in $D_i$. We look for all the domains $D_j$ linked to $D_i$ and remove all the values in $D_j$ that are no more supported; these values are called \textit{delta domain}. We repeat this operation until no modification can be performed. This operation is called \textit{propagation}. If after the propagation there exists an empty domain it means that there does not exist a solution containing $v_1$. We repeat the procedure with backtracking the state of the problem before $v_i$ was chose and we choose a new value in $D_i$ different from $v_i$. If on the other hand, after propagation we have no empty domains, we take a value $v_j$ from another domain $D_j$ and repeat the procedure. If we are able to select a value for each value which not produce an empty domain, it means we have found a solution.
+We can find a solution of a constraint problem by choosing an arbitrary value $v_i$ from a domain $D_i$ and removing all the other values in $D_i$. We look for all the domains $D_j$ having a constraint with $D_i$ and remove all the values in $D_j$ that are no more supported; these values belongs to the so-called \textit{delta domains}. We repeat this operation for each value in the \textit{delta domains} until the \textit{delta domains} is not empty. This operation is called \textit{propagation}. If, after the propagation, there exists an empty domain it means that there does not exist a solution containing $v_i$. We repeat the procedure by backtracking to the state before $v_i$ was chose and we select a new value in $D_i$ different from $v_i$. If after propagation we have no empty domains, we take a value $v_j$ from another domain $D_j$ and repeat the procedure. If we are able to select a value for each value not producing an empty domain, it means we have found a solution.
 
 \section{Binary constraints and arc consistency}
 
-An interesting property of constraint satisfaction problems is that they can always been rewritten in an equivalent problem having only binary constraint. A binary constraint is a constraint linking only two variables and thanks to this strategy the corresponding graph will have no more hyper-edges.
+An interesting property of the constraint satisfaction problems is that they can always be rewritten in an equivalent problem having only binary constraint. A binary constraint is a constraint relating only two variables. Thanks to this strategy the graph of the problem will have no more hyper-edges.
 
 \begin{example}
   If we retake the problem depicted in \cref{ex:p1}, we can change its model by adding an auxiliary variable $V_{aux}$ representing the ``index'' of each multi-relation of the original problem. For example, if we take $\{1_{V_1}, 1_{V_2}, 0_{V_3}\}$, we can say that $1_{V_{aux}}$ is the index of this tuple of values. The constraint $C_1$ is split in $3$ sub-constraints: $C_1^1$ representing the link between $V_{aux}$ and $V_1$, $C_1^2$ representing the link between $V_{aux}$ and $V_2$, $C_1^3$ representing the link between $V_{aux}$ and $V_3$. Note that constraint $C_1^3$ is made in order to respect the original constraint $C_1$. A more detailed example will be provided in \cref{sec:allIntGen}
 \end{example}
 
-In the state of the art we can find a lot of algorithms aiming to filter the values of a domains returning the set of not-supported values in a binary constraint satisfaction problem after deletion of a value $v_i$ in a domain $D_i$.
+In the state of the art we can find a lot of algorithms aiming to filter the domains and returning the \textit{delta domains} in a binary constraint satisfaction problem after deletion of a value $v_i$ in a domain $D_i$.
 
 In the following paragraph we will sketch the main ideas behind the algorithms \ac{3}, \ac{4}, \ac{6}, \ac{2001}.
 
 \paragraph{\ac{3}}
 
-In the \ac{3} algorithm, after the deletion of a value $v_i$ from a domain $D_i$, \ac{3} will iterate over each domain $D_j$ with a relation with $D_i$ and for each value of $v_j \in D_j$, if there does not exist a value in $D_i$ supporting $v_j$, $v_j$ will be returned.
+In the \ac{3} algorithm, after the deletion of a value $v_i$ from the domain $D_i$, \ac{3} will iterate over each domain $D_j$ with a relation with $D_i$ and for each value of $v_j \in D_j$, if there does not exist a value in $D_i$ supporting $v_j$, $v_j$ will be returned.
 
 \paragraph{\ac{4}}
 
-This algorithm has an internal data structure in order to improve the search of not-supported variables. Each value of each domain is associated to the list of the values supporting it. When we remove a value $v_i \in D_i$, we can directly know which variables $v_j$ depend on $v_i$ and if $v_j$ has no other variable in $D_i$ supporting it, $v_j$ is returned.
+This algorithm has an internal data structure in order to improve the search of the \textit{delta domains}. Each value of each domain is associated to the list of the values supporting it. When we remove a value $v_i \in D_i$, we can directly know which variable $v_j$ depends on $v_i$ and if $v_j$ has no other variable in $D_i$ supporting it, $v_j$ is returned.
 
 \paragraph{\ac{6}}
 
-In \ac{6}, the internal data structure is similar to the one of \ac{6}, but instead of associating each value $v_i$ to all the value $v_j$ supporting $v_i$, we only store the first value in each domain supporting $v_i$. In this way, we reduce the amount of data to store in memory and when a value $v_i \in D_i$ is removed, we look for the values $v_j$ supporting it and if the support of $v_j$ in $D_i$ is different from $v_i$ nothing is done. Otherwise, we look for a new support in $D_i$ starting from the value $v_i$. Note that in this algorithm it is important to give an order to the values in the domain.
+In \ac{6}, the internal data structure is similar to the one of \ac{6}, but instead of associating each value $v_i$ to all the values $v_j$ supporting $v_i$, we only store the first value in each domain supporting $v_i$. In this way, when a value $v_i \in D_i$ is removed, we look for the values $v_j$ supported by $v_i$ (this is called the \textit{s-list}). Then, we look for a new support in $D_j$ starting from the value $v_i$, if this new support doesn't exists, $v_j$ will be returned.
 
 \paragraph{\ac{2001}}
 
-In order to use the minimum amount of space, \ac{2001} stores, for each value $v_i \in D_i$, the first element $v_j$ in the related domain supporting it. When $v_i$ is removed, we only look for the values depending on $v_j$ and for them we look for a new support starting from $v_i$ in $D_i$, if such value doesn't exist it means that $v_j$ can be removed from $D_j$.
+In order to use the minimum amount of space, \ac{2001} stores for each value $v_i \in D_i$ the first value $v_j$ for each domain $D_j$ having a constraint with $D_i$ such that $v_j$ and $v_i$ are supporting each other. When $v_i$ is removed, we look for the values $v_j$ having has last support $v_i$ and for them we seek a new support starting from $v_i$. If such support doesn't exist $v_j$ can be removed from $D_j$.
 
 \section{My Implementation}
 
-I have developed my solver in OCaml (v. 4.13.1) a functional programming language using pointer and the \textit{Base} library since I have noticed better speed performances compared of the standard OCaml modules. In the following subsections I will provide a brief explanation of some of the most important modules I have implemented.
+I have developed my solver in \ml\ (v. 4.13.1) using the \textit{Base} library since I have noticed better speed performances compared of the standard \ml\ modules. In the following subsections I will provide a brief explanation of the most important data structure I have implemented.
 
 \subsection{Doubly linked lists}
 
-A doubly linked list (\textit{dll}) is a list whose elements have a pointer to their corresponding following and preceding element. One can note that the predecessor (resp. successor) of the first (resp. the last) element of a doubly linked list are represented by a fictive object: in my case I have used the \textit{None} option type. Doubly linked lists are particularly useful since the insertion and the deletion of an element of a \textit{dll} can be done in constant time: this is particularly useful to backtrack a list to a previous state.
+A doubly linked list (\textit{dll}) is a list whose elements have a pointer to their corresponding following and preceding element. The predecessor (resp. successor) of the first (resp. the last) element of a doubly linked list are represented by a fictive object: in my case the \textit{None} type. the \textit{dll}s are particularly useful since the insertion and the deletion of an element of a \textit{dll} can be done in constant time: this is particularly useful to backtrack a list to a previous state.
 
 \begin{minted}{ocaml}
   type 'e node = {
@@ -76,11 +74,11 @@ A doubly linked list (\textit{dll}) is a list whose elements have a pointer to t
   and 'e t = { id_dom : int; name : string; mutable content : 'e sentinel option }
 \end{minted}
 
-We can see that the type \textit{node} has a \textit{prev} and a \textit{next} field which are of type optional. The doubly linked list, itself, is represented by the type \textit{t} (following the OCaml convention) and it contains a sentinel pointing on the first and the last element of the \textit{dll}.
+We can see that the type \textit{node} has a \textit{prev} and a \textit{next} mutable optional fields. The \textit{dll}, itself, is represented by the type \textit{t} (following the \ml\ convention) containing a sentinel pointing on the first and the last element of the \textit{dll}.
 
-To represent in a unique way nodes and \textit{dll}, I have added the field \textit{id} (resp. \textit{id\_dom}) in order to find them quickly when looking inside \textit{Hash-Tables}.
+The nodes (resp. the \textit{dll}s) are uniquely represented by their \textit{id} field (resp. \textit{id\_dom}) in order to find them quickly when looking inside \textit{Hash-Tables}.
 
-The id of those records are generated through the generator:
+The id of those records are created through the generator:
 
 \begin{minted}{ocaml}
   let gen =
@@ -88,37 +86,36 @@ The id of those records are generated through the generator:
     fun () -> incr x; !x
 \end{minted}
 
-Inside the module \textit{DoublyLinkedList}, I have added all of those utility functions allowing to modify the content of a \textit{dll}. In particular, I can create, remove, insert, append or prepend a node inside a \textit{dll} modifying correspondingly the \textit{prev} and the \textit{next} fields.
+The module containing the \textit{dll} is called \textit{DoublyLinkedList} and, inside it, I have added all of those utility functions allowing to modify the content of a \textit{dll}. In particular, we can create, remove, insert, append or prepend a node inside a \textit{dll} modifying correspondingly the \textit{prev} and the \textit{next} fields.
 
-Moreover, I took inspiration from the \textit{List} module in OCaml and I have added some higher-order functions in order to check if an element belongs to a \textit{dll}, if a property is verified for every element in the \textit{dll} (a kind of \textit{foreach} in Java streams), \etc.
+Moreover, I have added some higher-order functions in order to check if an element belongs to a \textit{dll}, if a property is verified for every element of a \textit{dll} (a kind of \textit{foreach} in Java streams), \etc.
 
 \subsection{Graph, domains and constraints representation}
 
 The graph, the domains and the constraints are all implemented in the \textit{Graph} module since they contains the information about the problem.
 
 \begin{minted}{ocaml}
-  open Base
-  module DLL = DoublyLinkedList
-  
   type 'a domain = 'a DLL.t
   type 'a value = 'a DLL.node
   type 'a relation = 'a value -> 'a value -> bool
-  type 'a table_type = (int * int) Hash_set.t
+  type table_type = (int * int) Hash_set.t
 
   type 'a graph = {
-    tbl : 'a table_type;
+    tbl : table_type;
     relation : 'a relation;
     constraint_binding : ('a domain, 'a domain DLL.t) Hashtbl.t;
     domains : 'a domain Hash_set.t;
   }
 \end{minted}
 
-The type graph is a record containing a \textit{Hash\_set} of pairs of integers, that are the \textit{id} of two values supporting each other; a \textit{relation} taking two node and returning if they are linked in the constraint graph (it can be seen as the edges of the graph). Finally the \textit{constraint\_binding} is a \textit{Hash-Table} associating to the \textit{id} of each domain the set of domain linked through a constraint.
+A domain is essentially a \textit{dll} of values and a value is nothing but a node of a \textit{dll}. A relation is a function returning if two values are related, that is, there exists a constraint between them.
+
+The type graph is a record containing a \textit{Hash\_table} of pairs of integers, that are the \textit{id} of two values supporting each other; a \textit{relation} taking two node and returning if they are linked in the constraint graph (a relation can be seen as an edge of the graph); the \textit{constraint\_binding} is a \textit{Hash-Table} associating to each domain $D_i$ the set of domain with a constraint with $D_i$.
 
 We can add constraints between values through the auxiliary function:
 
 \begin{minted}{ocaml}
-  let add_constraint (graph : 'a graph) d1 v1 d2 v2 =
+  let add_constraint (graph : 'a graph) v1 d1 v2 d2 =
     let add_if_absent (d1 : 'a domain) (d2 : 'a domain) =
       let dom =
         Hashtbl.find_or_add graph.constraint_binding d1 ~default:(fun _ ->
@@ -134,58 +131,8 @@ We can add constraints between values through the auxiliary function:
     add_if_absent d2 d1
 \end{minted}
 
-This function take in parameter a graph, the name of a variable $v_1$ followed by the name of its domain $d_1$ and a second variable $v_2$ with the name of its corresponding domain $d_2$. In this function, $d_1$ and $d_2$ are inserted to the list of domains and the constraint between the node $v_1$ and $v_2$ is added.
+This function take as parameter a graph, the name of a variable $v_1$ followed by the name of its domain $d_1$ and a second variable $v_2$ with the name of its corresponding domain $d_2$. If not present, $d_1$ and $d_2$ are inserted to the list of domains. Finally, the constraint between the node $v_1$ and $v_2$ is added.
 
-\subsection{The solver}
-
-The solver is the engine behind the resolution of a CP problem. The solver select the values of the domains and each time a selection is performed, the AC algorithm is asked to give back the delta domains.
-
-My solver in OCaml is a \textit{functor} taking in parameter a module of type \textit{Arc\_consistency}.
-
-The solver has two public functions:
-\begin{minted}{ocaml}
-
-  module type Solver = sig
-    module DLL = DoublyLinkedList
-
-    val initialization : ?verbose:bool -> string Constraint.graph -> unit
-
-    val find_solution :
-      ?debug:bool ->
-      ?only_stats:bool ->
-      ?only_valid:bool ->
-      ?verbose:bool ->
-      ?one_sol:bool ->
-      unit ->
-      unit
-  end
-
-\end{minted}
-
-These function aim to initiate the problem inside the solver taking a graph $g$ in entry, and to find one or all the solutions obtainable from $g$. All the optional argument of the \textit{find\_solution} method are detailed in \cref{sec:arg}.
-
-Inside the functor we can find all the auxiliary attributes and functions allowing to solve the given problem.
-
-\begin{minted}{ocaml}
-  type 'a stack_type :
-    (string AC.stack_operation * string Graph.value) option Stack.t
-  val backtrack_mem : 'a stack_type 
-  val stack_op : 'a stack_type
-  val remove_by_node : ?verbose:bool -> string Graph.value -> unit
-  val propagation_remove_by_node : ?verbose:bool -> string Graph.value -> unit
-  val propagation_select_by_node : ?verbose:bool -> string Graph.value -> unit
-  val back_track : unit -> unit
-\end{minted}
-
-\paragraph{stack\_op:} is the stack containing all the operation made inside the Arc-Consistency algorithm.
-
-\paragraph{backtrack\_mem:} is the stack containing all the pointers to a previous state in the exploration tree in order to backtrack.
-
-\paragraph{remove\_by\_node:} when we remove a value $v_i$ from a domain $D_i$, we call the Arc-Consistency algorithm passed to the solver \textit{functor} and we add to the stack of undo operation the delta domain the set of values to remove for propagation in a second moment. Note that if after remove $v_i$ from $D_i$, we throw the \textit{Empty\_domain} exception which will be caught in order to backtrack and find other solutions.
-
-\paragraph{propagation\_remove\_by\_node:} this is an recursive function which propagates the deletion of a value $v_i$ which keep to remove all the value inside the delta domain until it is not empty.
-
-\paragraph{propagation\_select\_by\_node:} is selected is a function that calls the \textit{propagation\_remove\_by\_node} for all the values inside $D_i$ that are different from the current value $v_i$. At each selection of a value $v_i$, we add to the \textit{backtrack\_mem} a pointer to the actual state of the solver in order to get it back during the backtrack step.
 
 \subsection{The Arc Consistency Algorithms}
 The Arc Consistency algorithms are modules respecting the signature:
@@ -213,11 +160,11 @@ The Arc Consistency algorithms are modules respecting the signature:
   end
 \end{minted}
 
-In fact, an AC algorithm must have an initialization function allowing to clean the graph and instantiate the internal data structure, a revise function to remove a value $v_i$ from its domain and return the delta domains and the stack operation to be done during the backtrack to restore the internal state of the internal data structure.
+In fact, an AC algorithm must have an initialization function allowing to clean the graph and instantiate the internal data structure, a revise function to remove a value $v_i$ from its domain and return the delta domains. Moreover, the AC algorithms should define the type of their internal data structure and the type of the stack operation to use when the solver backtracks.
 
 \subsubsection{\ac{3}}
 
-This algorithm has no data structure, therefore, its only usefull implementation is the revise function witch is the mere application of the \ac{3} definition:
+This algorithm has no data structure, therefore, its only useful implementation is the revise function witch is the mere application of the \ac{3} definition:
 
 \begin{minted}{ocaml}
   let revise (v1 : 'a Graph.value) (graph : 'a data_struct) =
@@ -231,6 +178,8 @@ This algorithm has no data structure, therefore, its only usefull implementation
 \end{minted}
 
 We iterate over every node in the domains with a constraint binding with the domain of the value $v_1 \in D_1$ passed in argument of the function. If there is a value $v_j \in D_j$ with no support in $D_i$ then $v_j$ is appended to the list of delta domains.
+
+The initialization step is made by filtering all the values having no support.
 
 \subsubsection{\ac{4}}
 
@@ -250,11 +199,11 @@ The internal structure of \ac{4} is complex and I have tried to make it as effic
 \def\dc{\textit{double\_connection}}
 \def\ds{\textit{data\_struct}}
 
-The data structure is a \textit{Map} $\mathcal{M}_1$ associating to each value $v_i$ of each domain a second map $\mathcal{M_2}$. $\mathcal{M}_2$ is a map containing all the domains $D_j$ having a relation with $v_i$, to each domain $D_j$ we associate a list of \dc. A \dc\ is a record containing the value of $v_j \in D_j$ supporting $v_i$ and a pointer to the reciprocal \dc\ going from $v_j$ to $v_i$. This pointer is useful to speed the deletion of the support $v_j$ from the support of $v_i$ if $v_j$ is deleted. The revise function returns the \dc\ nodes removed from the internal data structure of \ac{4} and the list of delta domains.
+The data structure is a \textit{Hash-Table} $\mathcal{H}_1$ associating to each value $v_i$ of each domain $D_i$ a second \textit{Hash-Table} $\mathcal{H}_2$. $\mathcal{H}_2$ associates to each domain $D_j$ having a constraint with $D_i$ a \textit{dll} of \dc. A \dc\ is a record containing the value of $v_j \in D_j$ supporting $v_i$ and a pointer to the reciprocal \dc\ going from $v_j$ to $v_i$. This pointer is useful to speed the deletion of the support $v_j$ from the support of $v_i$ if $v_j$ is deleted. The revise function returns the \dc\ nodes removed from the internal data structure of \ac{4} and the list of delta domains.
 
 \subsubsection{\ac{6}}
 
-The \ac{6} algorithm is the one that caused me a lot of problem of implementation, since it works with both \textit{S-Lists} and the \textit{Last} value.
+The \ac{6} algorithm is the one that caused me the most problems of implementation, since it works with both \textit{S-Lists} and the \textit{Last} value.
 
 \begin{minted}{ocaml}
   type 'a cell = {
@@ -267,31 +216,81 @@ The \ac{6} algorithm is the one that caused me a lot of problem of implementatio
     ('a Graph.value * 'a cell) DLL.node list * 'a Graph.value DLL.node list
 \end{minted}
 
-The data structure of \ac{6} is made by the graph on one side and a \textit{Hashtbl} which associates to each value a record of type \textit{'a cell}. A \textit{cell} contains:
+The data structure of \ac{6} is made by the graph on one side and a \textit{Hashtbl} which associates to each value $v_i \in D_i$ a record of type \textit{'a cell}. A \textit{cell} contains:
 \begin{itemize}
-  \item the \textit{s\_list} that is a \textit{dll} associating to each value of the graph a pointer to the \textit{cell} in the internal data structure. This pointer allow to fast find which last values should be modified when a value is deleted.
-  \item the last value that is a \textit{Hashtbl} associating a domain to its corresponding last value.
+  \item the \textit{s\_list} that is a \textit{dll} associating to each value of the graph a pointer to the \textit{cell} in the internal data structure. This pointer allow to rapidly find which last values should be modified when a value is deleted.
+  \item the last value is a \textit{Hashtbl} associating to each domain $D_j$ having a relation with $D_i$ the first value in $D_j$ supporting $v_i$.
 \end{itemize}
 
 \subsubsection{\ac{2001}}
 
 \begin{minted}{ocaml}
-  type 'a remove_in_domain = string Graph.value list
   type 'a last = (Graph.ValueDomain.t, 'a Graph.value DLL.t) Hashtbl.t
   type 'a data_struct = { last : 'a last; graph : 'a Graph.graph }
   type 'a stack_operation = 'a Graph.value DLL.node list
 \end{minted}
 
-The \ac{2001} data structure is particularly easy to implement: \ds\ contains the original graph and the \textit{field} allowing to improve the support search after the deletion of a value $v_i \in D_i$. Inside the \textit{last} field, we find an \textit{Hashtbl} associating to each couple $v_i, D_j$ (where $D_j$ is a domain with a constraint with $D_i$) the last support of the node $v_i$ in $D_j$. When a node $v_i$ is remove in $D_i$, we lopp for all the domains $D_i$ with a constraint with $D_i$ and for all value $v_j\in D_j$ if the last support of $v_j$ is $v_i$ then we look for a new value $v_i' \in D_i$ starting from $v_i$ supporting $v_j$. If this support does not exists then $v_j$ will be returned with the delta domains, otherwise $v_i'$ will replace the last of $v_j$.
+The \ac{2001} data structure is particularly easy to implement: \ds\ contains the original graph and the \textit{last} field allowing to improve the new support search after the deletion of a value $v_i \in D_i$. As we can see, the \textit{last} field is a \textit{Hashtbl} associating to each couple $v_i, D_j$ (where $D_j$ is a domain with a constraint with the domain of $v_i$) the first support in $D_j$ for the node $v_i$. When a node $v_i$ is remove in $D_i$, we loop for all the domains $D_j$ with a constraint with $D_i$ and for all value $v_j \in D_j$ if the last support of $v_j$ is $v_i$ then we look for a new value $v_i' \in D_i$ starting from $v_i$ supporting $v_j$. If this support does not exists then $v_j$ will be returned with the delta domains, otherwise $v_i'$ will replace the last of $v_j$.
+
+\subsection{The solver}
+
+The solver is the main function behind the resolution of a CP problem. The solver select the values of the domains and each time a selection is performed, the AC algorithm is asked to give back the delta domains.
+
+My solver in OCaml is a \textit{functor} taking in parameter a module of type \textit{Arc\_consistency}.
+
+The solver has two public functions:
+\begin{minted}{ocaml}
+
+  module type Solver = sig
+    module DLL = DoublyLinkedList
+
+    val initialization : ?verbose:bool -> string Constraint.graph -> unit
+
+    val find_solution :
+      ?debug:bool ->
+      ?only_stats:bool ->
+      ?only_valid:bool ->
+      ?verbose:bool ->
+      ?one_sol:bool ->
+      unit ->
+      unit
+  end
+
+\end{minted}
+
+These function aim to respectively initiate the problem inside the solver taking a graph $\mathcal{G}$ in input, and to find one or all the solutions obtainable from $\mathcal{G}$. All the optional argument of the \textit{find\_solution} method want to parametrize the solver; they are detailed in \cref{sec:arg}.
+
+Inside the functor we can find all the auxiliary attributes and functions allowing to solve the given problem.
+
+\begin{minted}{ocaml}
+  type 'a stack_type :
+    (string AC.stack_operation * string Graph.value) option Stack.t
+  val backtrack_mem : 'a stack_type 
+  val stack_op : 'a stack_type
+  val remove_by_node : ?verbose:bool -> string Graph.value -> unit
+  val propagation_remove_by_node : ?verbose:bool -> string Graph.value -> unit
+  val propagation_select_by_node : ?verbose:bool -> string Graph.value -> unit
+  val back_track : unit -> unit
+\end{minted}
+
+\begin{description}
+  \item[stack\_op:] is the stack containing all the modification made inside the domains and inside the Arc-Consistency algorithm. This stack is used in order to backtrack.
+
+  \item[backtrack\_mem:] is the stack containing all the pointers to a previous state in the exploration tree in order to backtrack.
+
+  \item[remove\_by\_node:] when we remove a value $v_i$ from a domain $D_i$, we call the Arc-Consistency algorithm passed to the solver \textit{functor} and we add to the \textit{stack\_op} deleted values. Inside this function we also update the \textit{delta domains} returned by the filtering algorithm in order to propagate.
+
+  \item[propagation\_remove\_by\_node:] this is a recursive function which propagates the deletion of a value $v_i$. The propagation is repeated by calling the \textit{remove\_by\_node} function until the \textit{delta domains} is not empty.
+
+  \item[propagation\_select\_by\_node:] is a function taking the selected value $v_i$ which calls the \textit{propagation\_remove\_by\_node} for all the values inside $D_i$ that are different from $v_i$. At each selection of a value $v_i$, we add to the \textit{backtrack\_mem} a pointer to the actual state of the solver in order to get back the previous state during the backtrack phase.
+\end{description}
 
 \section{Run the project}
 \label{sec:arg}
 
-In order to simplify the interaction with the solver, the main program accepts a list of optional parameters to set the input of the problem, the verbose print mode, the arc consistency mode \etc.
+In order to simplify the interaction with the solver, the main program can be launched from the command line. It accepts a list of optional parameters to set the input of the problem, the print mode, the arc consistency algorithm \etc.
 
-Here a list of the parameters and their behavior can be printed in the \textit{stout} passing the\textit{--help} option.
-
-Here the full list of commands:
+Here a list of all the optional parameters and their behavior:
 
 \begin{minted}{text}
   -ac          Set the filtering algo among 3, 4, 6, 2001 - default : 3
@@ -308,22 +307,20 @@ Here the full list of commands:
   --help       Display this list of options
 \end{minted}
 
-Note that the \texttt{all-int} problem is run if you pass both the \texttt{all-int} and the \textit{queens} parameters.
-
-The \texttt{-f} parameter takes a file following the grammar proposed in \cref{sec:parser}.
+The \texttt{-f} parameter takes a file path that will be used as the input graph of the problem. The file should follow the grammar proposed in \cref{sec:parser}.
 
 \subsection{The parser}
 \label{sec:parser}
 
-A simple parser have been added to the main in order to easily enter file for texting the solver. A valid file to be parsed respect the following grammar:
+A simple parser have been added in order to easily enter file for texting the solver. A valid file to be parsed respect the following grammar:
 
 \begin{minted}{text}
-  P := variables* "\n--\n" constraints*
-  variables := name ":" (domains " ")* "\n"  
-  constraint := variable " " value " " variable " " value
+  start := variables* "\n--\n" constraints*
+  variables := v_name ":" (value " ")* "\n"  
+  constraint := v_name " " value " " v_name " " value "\n"
 
-  name := [a-zA-Z]*
-  domains := [a-zA-Z]*
+  v_name := [a-zA-Z0-9]*
+  value := [a-zA-Z0-9]*
 \end{minted}
 
 An example of file input can be seen in \cref{sec:input_ex}
@@ -342,8 +339,10 @@ An example of file input can be seen in \cref{sec:input_ex}
   Time of revise: 0.000013
   ------------------------------
   \end{minted}
-  \item \texttt{dune exec -- main -f ./graphs/input\_4.txt -ac 2001 -v} produces the result proposed in \cref{sec:output_ex}\footnote{The file \texttt{./graphs/input\_4.text} is the one depicted in \cref{sec:input_ex}}
-  \item the bash executables \texttt{./allInt.sh} and \texttt{./queens.sh} run respectively the \allint\ and the \queens\ problem for $n$ going from $0$ to respectively $12$ and $11$. Not that both executable accept two integers in parameter changing the default bound of computation. For example, \texttt{./allInt.sh 3 7} will launch the \allint\ for $n$ from $3$ to $7$.
+
+  \item \texttt{dune exec -- main -f ./graphs/input\_4.txt -ac 2001 -v} runs \ac{2001} in verbose mode \\ from the file \texttt{./graphs/input\_4.text} and produces the result proposed in \cref{sec:output_ex} \footnote{The file \texttt{./graphs/input\_4.text} is the one depicted in \cref{sec:input_ex}}
+
+  \item the bash executables \texttt{./allInt.sh} and \texttt{./queens.sh} run respectively the \allint\ and the \queens\ problem for $n$ going from $0$ to respectively $12$ and $11$. Both executable accept two integers in parameter changing the default bound of computation. For example, \texttt{./allInt.sh 3 7} will launch the \allint\ for $n$ from $3$ to $7$.
 
 \end{itemize}
 
@@ -351,7 +350,7 @@ An example of file input can be seen in \cref{sec:input_ex}
 
 \section{Benchmark}
 
-In this section I will provide a brief performance comparison of the for filtering algorithm on the \allint\ and the \queens\ problem. Of course, the performances of each \textit{AC} algorithm will also depend on the efficiency of my implementation, since I have tried to optimize every algorithm using different programming strategy, but in all of them I use \textit{Hash-Tables} in the data structures and therefore the performances will depend on how many time the algorithm is trying to access an element of the \textit{Hash-Table}.
+In this section I will provide a brief performance comparison of the four filtering algorithms on the \allint\ and the \queens\ problems. The performances of each \textit{AC} algorithm will depend on the efficiency of my implementation. Note that I use \textit{Hash-Tables} in the data structures and therefore the performances will depend on how many time the algorithm is trying to access an element of the \textit{Hash-Table}.
 
 \subsection{The \allint\ problem}
 
@@ -363,8 +362,6 @@ In this section I will provide a brief performance comparison of the for filteri
 \label{sec:allIntGen}
 
 In order to test the \allint\ for a given parameter $n$, I have started by transforming the problem in a binary constraint problem (the absolute value is a ternary operator). As we have seen in our course, I have reasoned in term of a table indexed by an auxiliary parameter.
-
-The generated problem is represented on the form of a text parsable by the parser detailed in \cref{sec:parser}.
 
 The variables:
 
@@ -388,11 +385,11 @@ An example of a generated print of this problem can be displayed through the com
 
 \plotProblem{AllIntervalSeries}
 
-The statistics of the run of the \allint\ problem are show in \cref{img:AllIntervalSeries}. We see that \ac{4} pass a lot of time doing backtracks, since it is the filtering performing the most modifications on the internal data structure, but the time spent in backtracks is negligible compared to the revise time, since, the \textit{tot time} curve (\cref{img:AllIntervalSeries-tot time}) has the same shape of the \textit{revise time} curve \textit{revise time} (\cref{img:AllIntervalSeries-revise time}).
+The statistics of the run of the \allint\ problem are show in \cref{img:AllIntervalSeries}. We see that \ac{4} pass a lot of time doing backtracks, since it is the filtering algorithm performing the most modifications on the internal data structure, but the time spent in backtracks is negligible compared to the revise time, since, the \textit{tot time} curve (\cref{img:AllIntervalSeries-tot time}) has the same shape of the \textit{revise time} curve (\cref{img:AllIntervalSeries-revise time}).
 
-We can finally see that \ac{4} outperforms the other filtering algorithms since its data structure allows to efficiently know if a value is still supported. On the other hans, \ac{3} has no other way to loop over all the values of each domains, and since, for example, the domain of the $aux$ variables can be potentially huge but strongly constraint, \ac{3} must loop a lot over this domain to know if a value $v_i$ or $s_i$ has a support in $aux_i$.
+We can finally see that \ac{4} outperforms the other filtering algorithms since its data structure allows to efficiently know if a value is still supported. On the other hans, \ac{3} has no other way to loop over all the values of each domains, and since, for example, the domain of the $aux$ variables can be potentially huge but strongly constraint, \ac{3} must loop a lot to know if a value $aux_i$ has a support in $v_i$, $s_i$ and $s_{i+1}$.
 
-The other two algorithms, \ac{6} and \ac{2001} have better performances then \ac{3}, because, again, they both keep a trace of the support of each domain allowing to speed up the overall performance.
+The other two algorithms, \ac{6} and \ac{2001} have better performances then \ac{3}, because, they both keep a trace of the support of each domain allowing to speed up the overall performance.
 
 
 \subsection{The \queens\ problem}
@@ -419,13 +416,13 @@ An input example of this problem with $n = 3$ is provided in \cref{sec:queens_in
 \subsubsection{Stats}
 \plotProblem{Queens}
 
-The statistics of the \queens\ problem are given in \cref{img:Queens}. In this implementation, we can see that \ac{4} has again good performances. A big difference wrt the \allint\ results is that \ac{3} has a good behavior since it is the second fastest algorithm. This is mainly because the constraints in the \queens\ problem are homogeneously distributed for each variable: this is due to the high number of symmetries of the problem. \ac{6} has by far the slowest performances. I think this is due to its implementation that is not very efficient. I have tried to make a lot of variation of implementation for this filtering algorithm but I have not been able to improve it any more. This algorithm is implemented making a lot interaction with the \textit{Hash-Table} which is known to be slow.
+The statistics of the \queens\ problem are given in \cref{img:Queens}. In this implementation, we can see that \ac{4} has again good performances. A big difference wrt the \allint\ results is that \ac{3} has a good behavior since it is the second fastest algorithm. This is mainly because the constraints in the \queens\ problem are homogeneously distributed for each variable: this is due to the high number of symmetries of the problem. \ac{6} has by far the slowest performances. I think this is due to its implementation that is not very efficient. I have tried to make a lot of variation of this filtering algorithm but I have not been able to improve it any more. In fact, \ac{6} makes a lot interaction with the \textit{Hash-Table} which is an operation known to be slow.
 
-Interestingly, we can see that \ac{2001} is slower that \ac{3}, even if \ac{2001} stores the information about the last support of each value. This is due to the use of \textit{Hash-Tables} which, again, slows down the performances.
+Interestingly, we can see that \ac{2001} is slower that \ac{3}, even if \ac{2001} stores the information about the last support of each value. I think that, again, the use of \textit{Hash-Tables} in \ac{2001} to store the last values slows down its performances.
 
 \section{Conclusion}
 
-In my opinion, even if it stores a lot of data \ac{4} is a good algorithm: in a first time it may be difficult to implement its data structure, in my case, I have used a lot the \textit{dll} data structure and lots of pointer going from one side to the other of related variables, but, in a second time, we can see its good performances. This project allowed me to understand deeply the principle of backtracking a state in dynamic scenario such has the propagation of filtering values from domains. Moreover, since I wanted to improve the speed of the algorithms, I have been faced to the low performances of the standard libraries of \textit{OCaml} and I have finally been able to use and understand the \textit{Base} module of this programming language.
+In my opinion, even if it stores a lot of data, \ac{4} is a good algorithm: in a first time it may be difficult to conceive and implement its data structure. In my case, I have used a lot the \textit{dll} data structure and pointers going from one side to the other of related variables, but, in a second time, we can see its good performances. This project allowed me to understand deeply the principle of backtracking a state in a dynamic scenario such as the propagation of the filtering operation. Moreover, since I wanted to improve the speed of the algorithms, I have been faced to the low performances of the standard libraries of \ml\ and I have finally been able to use and understand the \textit{Base} module of this programming language.
 
 \newpage
 
@@ -457,198 +454,198 @@ In my opinion, even if it stores a lot of data \ac{4} is a good algorithm: in a 
 
 \begin{minted}{text}
   Initialization : removing a from d1  
-Initialization : removing 4 from d2
-Initialization : removing 5 from d2
-Initialization : removing h from d3
-The data structure is:
-node : (d2,2), last : (d1,b) 
-node : (d2,2), last : (d3,f) 
-node : (d3,f), last : (d2,2) 
-node : (d1,c), last : (d2,2) 
-node : (d1,b), last : (d2,2) 
-node : (d3,e), last : (d2,3) 
-node : (d3,g), last : (d2,3) 
-node : (d2,3), last : (d1,c) 
-node : (d2,3), last : (d3,e) 
-The domains are
--- Start Domains --
-d1 : b;c;
-d2 : 2;3;
-d3 : e;f;g;
---- End Domains ---
------------------------------
---> Selecting b from d1
-* Removing c from d1
-List of values having no more support = [(d2,3)]
-* Removing 3 from d2
-List of values having no more support = [(d3,g), (d3,e)]
-* Removing g from d3
-List of values having no more support = []
-* Removing e from d3
-List of values having no more support = []
---> Selecting 2 from d2
---> Selecting f from d3
-A solution : [(d3,f), (d2,2), (d1,b)] !!
---> Selecting c from d1
-* Removing b from d1
-List of values having no more support = []
---> Selecting 2 from d2
-* Removing 3 from d2
-List of values having no more support = [(d3,g), (d3,e)]
-* Removing g from d3
-List of values having no more support = []
-* Removing e from d3
-List of values having no more support = []
---> Selecting f from d3
-A solution : [(d3,f), (d2,2), (d1,c)] !!
---> Selecting 3 from d2
-* Removing 2 from d2
-List of values having no more support = []
---> Selecting e from d3
-* Removing f from d3
-List of values having no more support = []
-* Removing g from d3
-List of values having no more support = []
-A solution : [(d3,e), (d2,3), (d1,c)] !!
---> Selecting f from d3
-* Removing e from d3
-List of values having no more support = []
-* Removing g from d3
-List of values having no more support = []
-A solution : [(d3,f), (d2,3), (d1,c)] !!
---> Selecting g from d3
-* Removing e from d3
-List of values having no more support = []
-* Removing f from d3
-List of values having no more support = []
-A solution : [(d3,g), (d2,3), (d1,c)] !!
-------------------------------
-The number of fails is 0
-The number of solutions is 5
-Total Time: 0.000270
-Time of backtracks: 0.000002
-Time of revise: 0.000015
-------------------------------
+  Initialization : removing 4 from d2
+  Initialization : removing 5 from d2
+  Initialization : removing h from d3
+  The data structure is:
+  node : (d2,2), last : (d1,b) 
+  node : (d2,2), last : (d3,f) 
+  node : (d3,f), last : (d2,2) 
+  node : (d1,c), last : (d2,2) 
+  node : (d1,b), last : (d2,2) 
+  node : (d3,e), last : (d2,3) 
+  node : (d3,g), last : (d2,3) 
+  node : (d2,3), last : (d1,c) 
+  node : (d2,3), last : (d3,e) 
+  The domains are
+  -- Start Domains --
+  d1 : b;c;
+  d2 : 2;3;
+  d3 : e;f;g;
+  --- End Domains ---
+  -----------------------------
+  --> Selecting b from d1
+  * Removing c from d1
+  List of values having no more support = [(d2,3)]
+  * Removing 3 from d2
+  List of values having no more support = [(d3,g), (d3,e)]
+  * Removing g from d3
+  List of values having no more support = []
+  * Removing e from d3
+  List of values having no more support = []
+  --> Selecting 2 from d2
+  --> Selecting f from d3
+  A solution : [(d3,f), (d2,2), (d1,b)] !!
+  --> Selecting c from d1
+  * Removing b from d1
+  List of values having no more support = []
+  --> Selecting 2 from d2
+  * Removing 3 from d2
+  List of values having no more support = [(d3,g), (d3,e)]
+  * Removing g from d3
+  List of values having no more support = []
+  * Removing e from d3
+  List of values having no more support = []
+  --> Selecting f from d3
+  A solution : [(d3,f), (d2,2), (d1,c)] !!
+  --> Selecting 3 from d2
+  * Removing 2 from d2
+  List of values having no more support = []
+  --> Selecting e from d3
+  * Removing f from d3
+  List of values having no more support = []
+  * Removing g from d3
+  List of values having no more support = []
+  A solution : [(d3,e), (d2,3), (d1,c)] !!
+  --> Selecting f from d3
+  * Removing e from d3
+  List of values having no more support = []
+  * Removing g from d3
+  List of values having no more support = []
+  A solution : [(d3,f), (d2,3), (d1,c)] !!
+  --> Selecting g from d3
+  * Removing e from d3
+  List of values having no more support = []
+  * Removing f from d3
+  List of values having no more support = []
+  A solution : [(d3,g), (d2,3), (d1,c)] !!
+  ------------------------------
+  The number of fails is 0
+  The number of solutions is 5
+  Total Time: 0.000270
+  Time of backtracks: 0.000002
+  Time of revise: 0.000015
+  ------------------------------
 \end{minted}
 
 \section{Concrete problems' inputs}
-\subsection{A \allint\ input}
+\subsection{An \allint\ input}
 \label{sec:allint_inp}
 
 \begin{minted}{text}
-v1 : 1 2                             
-v2 : 1 2 
-aux1 : 1 2 3 4 5 6 7 8 9 
-aux2 : 1 2 3 4 5 6 7 8 9 
-1: 0 1 2 
-2: 0 1 2 
-3: 0 1 2 
---
-# The all diff on the v vector
-v1 1 v2 2
-v1 2 v2 1
-v2 1 v1 2
-v2 2 v1 1
-# the table constraint
-aux1 2 1 1
-aux1 2 2 0
-aux1 2 v1 1
-aux1 3 1 2
-aux1 3 2 0
-aux1 3 v1 2
-aux1 4 1 0
-aux1 4 2 1
-aux1 4 v1 1
-aux1 6 1 2
-aux1 6 2 1
-aux1 6 v1 1
-aux1 7 1 0
-aux1 7 2 2
-aux1 7 v1 2
-aux1 8 1 1
-aux1 8 2 2
-aux1 8 v1 1
-aux2 2 2 1
-aux2 2 3 0
-aux2 2 v2 1
-aux2 3 2 2
-aux2 3 3 0
-aux2 3 v2 2
-aux2 4 2 0
-aux2 4 3 1
-aux2 4 v2 1
-aux2 6 2 2
-aux2 6 3 1
-aux2 6 v2 1
-aux2 7 2 0
-aux2 7 3 2
-aux2 7 v2 2
-aux2 8 2 1
-aux2 8 3 2
-aux2 8 v2 1
-# The all diff on the s vector
-1 0 2 1
-1 0 2 2
-1 0 3 1
-1 0 3 2
-1 1 2 0
-1 1 2 2
-1 1 3 0
-1 1 3 2
-1 2 2 0
-1 2 2 1
-1 2 3 0
-1 2 3 1
-2 0 1 1
-2 0 1 2
-2 0 3 1
-2 0 3 2
-2 1 1 0
-2 1 1 2
-2 1 3 0
-2 1 3 2
-2 2 1 0
-2 2 1 1
-2 2 3 0
-2 2 3 1
-3 0 1 1
-3 0 1 2
-3 0 2 1
-3 0 2 2
-3 1 1 0
-3 1 1 2
-3 1 2 0
-3 1 2 2
-3 2 1 0
-3 2 1 1
-3 2 2 0
-3 2 2 1
+  v1 : 1 2                             
+  v2 : 1 2 
+  aux1 : 1 2 3 4 5 6 7 8 9 
+  aux2 : 1 2 3 4 5 6 7 8 9 
+  1: 0 1 2 
+  2: 0 1 2 
+  3: 0 1 2 
+  --
+  # The all diff on the v vector
+  v1 1 v2 2
+  v1 2 v2 1
+  v2 1 v1 2
+  v2 2 v1 1
+  # the table constraint
+  aux1 2 1 1
+  aux1 2 2 0
+  aux1 2 v1 1
+  aux1 3 1 2
+  aux1 3 2 0
+  aux1 3 v1 2
+  aux1 4 1 0
+  aux1 4 2 1
+  aux1 4 v1 1
+  aux1 6 1 2
+  aux1 6 2 1
+  aux1 6 v1 1
+  aux1 7 1 0
+  aux1 7 2 2
+  aux1 7 v1 2
+  aux1 8 1 1
+  aux1 8 2 2
+  aux1 8 v1 1
+  aux2 2 2 1
+  aux2 2 3 0
+  aux2 2 v2 1
+  aux2 3 2 2
+  aux2 3 3 0
+  aux2 3 v2 2
+  aux2 4 2 0
+  aux2 4 3 1
+  aux2 4 v2 1
+  aux2 6 2 2
+  aux2 6 3 1
+  aux2 6 v2 1
+  aux2 7 2 0
+  aux2 7 3 2
+  aux2 7 v2 2
+  aux2 8 2 1
+  aux2 8 3 2
+  aux2 8 v2 1
+  # The all diff on the s vector
+  1 0 2 1
+  1 0 2 2
+  1 0 3 1
+  1 0 3 2
+  1 1 2 0
+  1 1 2 2
+  1 1 3 0
+  1 1 3 2
+  1 2 2 0
+  1 2 2 1
+  1 2 3 0
+  1 2 3 1
+  2 0 1 1
+  2 0 1 2
+  2 0 3 1
+  2 0 3 2
+  2 1 1 0
+  2 1 1 2
+  2 1 3 0
+  2 1 3 2
+  2 2 1 0
+  2 2 1 1
+  2 2 3 0
+  2 2 3 1
+  3 0 1 1
+  3 0 1 2
+  3 0 2 1
+  3 0 2 2
+  3 1 1 0
+  3 1 1 2
+  3 1 2 0
+  3 1 2 2
+  3 2 1 0
+  3 2 1 1
+  3 2 2 0
+  3 2 2 1
 \end{minted}
 
 \subsection{A \queens\ input}
 \label{sec:queens_inp}
 
 \begin{minted}{text}
-1:1 2 3                              
-2:1 2 3 
-3:1 2 3 
---
-1 1 3 2
-1 1 2 3
-2 1 1 3
-2 1 3 3
-3 1 1 2
-3 1 2 3
-1 2 3 1
-1 2 3 3
-3 2 1 1
-3 2 1 3
-1 3 2 1
-1 3 3 2
-2 3 1 1
-2 3 3 1
-3 3 2 1
-3 3 1 2
+  1:1 2 3                              
+  2:1 2 3 
+  3:1 2 3 
+  --
+  1 1 3 2
+  1 1 2 3
+  2 1 1 3
+  2 1 3 3
+  3 1 1 2
+  3 1 2 3
+  1 2 3 1
+  1 2 3 3
+  3 2 1 1
+  3 2 1 3
+  1 3 2 1
+  1 3 3 2
+  2 3 1 1
+  2 3 3 1
+  3 3 2 1
+  3 3 1 2
 \end{minted}
 
 \end{document}
