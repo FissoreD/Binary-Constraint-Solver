@@ -4,10 +4,10 @@ module DLL = DoublyLinkedList
 type 'a domain = 'a DLL.t
 type 'a value = 'a DLL.node
 type 'a relation = 'a value -> 'a value -> bool
-type 'a table_type = (int * int) Hash_set.t
+type table_type = (int * int) Hash_set.t
 
 type 'a graph = {
-  tbl : 'a table_type;
+  tbl : table_type;
   relation : 'a relation;
   constraint_binding : ('a domain, 'a domain DLL.t) Hashtbl.t;
   domains : 'a domain Hash_set.t;
