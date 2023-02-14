@@ -14,7 +14,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}[1999/12/01]
 \ProvidesClass{rapport}
-    [2021/11/22 v1.10 adding the titlepageneglish macro.]
+[2021/11/22 v1.10 adding the titlepageneglish macro.]
 \LoadClass[a4paper, twoside]{article}
 
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{article}}
@@ -42,7 +42,7 @@
 % \usepackage[T1]{fontenc}
 
 \usepackage{pifont}
-\usepackage{url} 
+\usepackage{url}
 \usepackage{xstring}
 \usepackage{etoolbox}
 % \usepackage{syntax}
@@ -73,8 +73,8 @@
 
 % Bibliography
 \usepackage[
-backend=biber,
-sorting=ynt
+    backend=biber,
+    sorting=ynt
 ]{biblatex}
 \addbibresource{bib.bib}
 
@@ -105,7 +105,7 @@ sorting=ynt
 
 \pgfmathdeclarefunction{countarray}{1}{\edef\pgfmathresult{\Counter#1\Stopper}}
 
-\usepackage{xargs}     
+\usepackage{xargs}
 \usepackage[textsize=tiny]{todonotes}
 \setlength{\marginparwidth}{2cm}
 \newcommandx{\unsure}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
@@ -123,100 +123,100 @@ sorting=ynt
 
 \graphicspath{img/}
 
-\makeatletter         
-\renewcommand\maketitle{
-\newgeometry{top=0.8in,bottom=1in,right=1in,left=1in}
-
-
-\author{Fissore Davide}
-\title{Mini-solver in OCaml based on binary Constraint Satisfaction Problem}
-
 \makeatletter
-\let\thetitle\@title
-\let\theauthor\@author
-\makeatother
-
-\newcommand{\professor}{Jean-Charles Régin}
-\newcommand{\course}{Master in Computer Science}
-\newcommand{\subcourse}{Course : Constraint Programming}
-
-\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % Defines a new command for the horizontal lines, change thickness here
-
-\SetKw{KwDownTo}{downto}
-
-\begin{center} % Center everything on the page
- 
-%--------------------
-%	LOGO SECTION
-%--------------------
-
-\includegraphics[width=13cm]{img/logos/logo_haut_uca.png}\\[3cm] % Include a department/university logo - this will require the graphicx package
- 
- 
-%--------------------
-%	HEADING SECTIONS
-%--------------------
-
-% \textsc{\LARGE University Name}\\[1.5cm] % Name of your university/college
-\ifdefempty{\subcourse}{}{\textsc{\Large \course}\\[0.5cm]} % Major heading such as course name
-\ifdefempty{\subcourse}{}{\textsc{\large \subcourse}\\[0.5cm]} % Minor heading such as course title
-
-%--------------------
-%	TITLE SECTION
-%--------------------
-
-\HRule \\[0.8cm]
-{\huge \bfseries \thetitle}\\[0.4cm] % Title of your document
-\HRule \\[1.5cm]
- 
-%--------------------
-%	AUTHOR SECTION
-%--------------------
-
-\begin{minipage}{0.4\textwidth}
-\begin{flushleft} \large
-\emph{Author:}\\
-\StrSubstitute{\theauthor}{,}{\newline}% Your name
-\end{flushleft}
-\end{minipage}
-~
-\ifdefempty{\professor}{}{
-    \begin{minipage}{0.4\textwidth}
-    \begin{flushright} \large
-    \emph{Supervisor:} \\
-    \StrSubstitute{\professor}{,}{\newline}% Supervisor
-    \end{flushright}
-    \end{minipage}
-}
+\renewcommand\maketitle{
+    \newgeometry{top=0.8in,bottom=1in,right=1in,left=1in}
 
 
-% \begin{abstract}
-%     Goal: code a constraint solver using the arc-concistency algorithms: AC-3, AC-4, AC-6, AC-2001
-% \end{abstract}
+    \author{Fissore Davide}
+    \title{Binary Constraint Solver in OCaml}
 
-% If you don't want a supervisor, uncomment the two lines below and remove the section above
-%\Large \emph{Author:}\\
-%John \textsc{Smith}\\[3cm] % Your name
+    \makeatletter
+    \let\thetitle\@title
+    \let\theauthor\@author
+    \makeatother
 
-%--------------------
-%	DATE SECTION
-%--------------------
-\mbox{}
-\vfill
-{\large Februray 2023}
+    \newcommand{\professor}{Jean-Charles Régin}
+    \newcommand{\course}{Master in Computer Science}
+    \newcommand{\subcourse}{Course : Constraint Programming}
 
-%--------------------
-\end{center}
-\pagenumbering{gobble}
-\whitepage{}
-\clearpage
+    \newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % Defines a new command for the horizontal lines, change thickness here
 
-\tableofcontents
+    \SetKw{KwDownTo}{downto}
 
-\clearpage
-\pagenumbering{arabic}
-% To start the page counter after the TOC
-% \setcounter{page}{1}
+    \begin{center} % Center everything on the page
+
+        %--------------------
+        %	LOGO SECTION
+        %--------------------
+
+        \includegraphics[width=13cm]{img/logos/logo_haut_uca.png}\\[3cm] % Include a department/university logo - this will require the graphicx package
+
+
+        %--------------------
+        %	HEADING SECTIONS
+        %--------------------
+
+        % \textsc{\LARGE University Name}\\[1.5cm] % Name of your university/college
+        \ifdefempty{\subcourse}{}{\textsc{\Large \course}\\[0.5cm]} % Major heading such as course name
+        \ifdefempty{\subcourse}{}{\textsc{\large \subcourse}\\[0.5cm]} % Minor heading such as course title
+
+        %--------------------
+        %	TITLE SECTION
+        %--------------------
+
+        \HRule \\[0.8cm]
+        {\huge \bfseries \thetitle}\\[0.4cm] % Title of your document
+        \HRule \\[1.5cm]
+
+        %--------------------
+        %	AUTHOR SECTION
+        %--------------------
+
+        \begin{minipage}{0.4\textwidth}
+            \begin{flushleft} \large
+                \emph{Author:}\\
+                \StrSubstitute{\theauthor}{,}{\newline}% Your name
+            \end{flushleft}
+        \end{minipage}
+        ~
+        \ifdefempty{\professor}{}{
+            \begin{minipage}{0.4\textwidth}
+                \begin{flushright} \large
+                    \emph{Supervisor:} \\
+                    \StrSubstitute{\professor}{,}{\newline}% Supervisor
+                \end{flushright}
+            \end{minipage}
+        }
+
+
+        % \begin{abstract}
+        %     Goal: code a constraint solver using the arc-concistency algorithms: AC-3, AC-4, AC-6, AC-2001
+        % \end{abstract}
+
+        % If you don't want a supervisor, uncomment the two lines below and remove the section above
+        %\Large \emph{Author:}\\
+        %John \textsc{Smith}\\[3cm] % Your name
+
+        %--------------------
+        %	DATE SECTION
+        %--------------------
+        \mbox{}
+        \vfill
+        {\large Februray 2023}
+
+        %--------------------
+    \end{center}
+    \pagenumbering{gobble}
+    \whitepage{}
+    \clearpage
+
+    \tableofcontents
+
+    \clearpage
+    \pagenumbering{arabic}
+    % To start the page counter after the TOC
+    % \setcounter{page}{1}
 }
 \makeatother
 
