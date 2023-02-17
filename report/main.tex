@@ -385,12 +385,13 @@ An example of a generated print of this problem can be displayed through the com
 
 \plotProblem{AllIntervalSeries}
 
-The statistics of the run of the \allint\ problem are show in \cref{img:AllIntervalSeries}. We see that \ac{4} pass a lot of time doing backtracks, since it is the filtering algorithm performing the most modifications on the internal data structure, but the time spent in backtracks is negligible compared to the revise time, since, the \textit{tot time} curve (\cref{img:AllIntervalSeries-tot time}) has the same shape of the \textit{revise time} curve (\cref{img:AllIntervalSeries-revise time}).
+The statistics of the run of the \allint\ problem are show in \cref{img:AllIntervalSeries}. We see that \ac{4} spends a lot of time doing backtracks, since it is the filtering algorithm performing the most modifications on the internal data structure, but the time spent in backtracks is negligible compared to the revise time, since, the \textit{tot time} curve (\cref{img:AllIntervalSeries-tot time}) has the same shape of the \textit{revise time} curve (\cref{img:AllIntervalSeries-revise time}).
 
 We can finally see that \ac{4} outperforms the other filtering algorithms since its data structure allows to efficiently know if a value is still supported. On the other hans, \ac{3} has no other way to loop over all the values of each domains, and since, for example, the domain of the $aux$ variables can be potentially huge but strongly constraint, \ac{3} must loop a lot to know if a value $aux_i$ has a support in $v_i$, $s_i$ and $s_{i+1}$.
 
-The other two algorithms, \ac{6} and \ac{2001} have better performances then \ac{3}, because, they both keep a trace of the support of each domain allowing to speed up the overall performance.
+\ac{2001} has better performances then \ac{3}, because, they both keep a trace of the support of each domain allowing to speed up the overall performance.
 
+I want to underline that \ac{6} has slow performances since it is an algorithm accessing a lot the \textit{Hash-Table}s of the internal data structure. I have tried to make a lot of variation of this filtering algorithm but I have not been able to improve it any more.
 
 \subsection{The \queens\ problem}
 
@@ -411,14 +412,16 @@ The constraints:
   \item Given two columns $c_i, c_j \in c$, the value $val_i$ of $c_i$ supports the value $val_j$ of $c_j$ if $val_i \neq val_j$ (the \textit{AllDiff} on the rows) \textit{and} $|val_i - val_j| \neq |i - j|$ (the \textit{AllDiff} on the diagonals).
 \end{itemize}
 
-An input example of this problem with $n = 3$ is provided in \cref{sec:queens_inp}
+An input example of this problem with $n = 4$ is provided in \cref{sec:queens_inp}
 
 \subsubsection{Stats}
 \plotProblem{Queens}
 
-The statistics of the \queens\ problem are given in \cref{img:Queens}. In this implementation, we can see that \ac{4} has again good performances. A big difference wrt the \allint\ results is that \ac{3} has a good behavior since it is the second fastest algorithm. This is mainly because the constraints in the \queens\ problem are homogeneously distributed for each variable: this is due to the high number of symmetries of the problem. \ac{6} has by far the slowest performances. I think this is due to its implementation that is not very efficient. I have tried to make a lot of variation of this filtering algorithm but I have not been able to improve it any more. In fact, \ac{6} makes a lot interaction with the \textit{Hash-Table} which is an operation known to be slow.
+The statistics of the \queens\ problem are given in \cref{img:Queens}. In this implementation, we can see that \ac{4} has again good performances. A big difference wrt the \allint\ results is that \ac{3} has a good behavior since it is the second fastest algorithm. This is mainly because the constraints in the \queens\ problem are homogeneously distributed for each variable: this is due to the high number of symmetries of the problem.
 
 Interestingly, we can see that \ac{2001} is slower that \ac{3}, even if \ac{2001} stores the information about the last support of each value. I think that, again, the use of \textit{Hash-Tables} in \ac{2001} to store the last values slows down its performances.
+
+As for the previous section, \ac{6} has by far the slowest performances.
 
 \section{Conclusion}
 
@@ -533,119 +536,197 @@ In my opinion, even if it stores a lot of data, \ac{4} is a good algorithm: in a
 \label{sec:allint_inp}
 
 \begin{minted}{text}
-  v1 : 1 2                             
-  v2 : 1 2 
-  aux1 : 1 2 3 4 5 6 7 8 9 
-  aux2 : 1 2 3 4 5 6 7 8 9 
-  1: 0 1 2 
-  2: 0 1 2 
-  3: 0 1 2 
+  # The s variables 
+  s1: 0 1 2 
+  s2: 0 1 2 
+  s3: 0 1 2 
+  # The v variables 
+  v1: 1 2 
+  v2: 1 2 
+  # The aux variables 
+  aux1: 1 2 3 4 5 6 7 8 9 
+  aux2: 1 2 3 4 5 6 7 8 9 
   --
-  # The all diff on the v vector
-  v1 1 v2 2
-  v1 2 v2 1
-  v2 1 v1 2
-  v2 2 v1 1
-  # the table constraint
-  aux1 2 1 1
-  aux1 2 2 0
-  aux1 2 v1 1
-  aux1 3 1 2
-  aux1 3 2 0
-  aux1 3 v1 2
-  aux1 4 1 0
-  aux1 4 2 1
-  aux1 4 v1 1
-  aux1 6 1 2
-  aux1 6 2 1
-  aux1 6 v1 1
-  aux1 7 1 0
-  aux1 7 2 2
-  aux1 7 v1 2
-  aux1 8 1 1
-  aux1 8 2 2
-  aux1 8 v1 1
-  aux2 2 2 1
-  aux2 2 3 0
-  aux2 2 v2 1
-  aux2 3 2 2
-  aux2 3 3 0
-  aux2 3 v2 2
-  aux2 4 2 0
-  aux2 4 3 1
-  aux2 4 v2 1
-  aux2 6 2 2
-  aux2 6 3 1
-  aux2 6 v2 1
-  aux2 7 2 0
-  aux2 7 3 2
-  aux2 7 v2 2
-  aux2 8 2 1
-  aux2 8 3 2
-  aux2 8 v2 1
-  # The all diff on the s vector
-  1 0 2 1
-  1 0 2 2
-  1 0 3 1
-  1 0 3 2
-  1 1 2 0
-  1 1 2 2
-  1 1 3 0
-  1 1 3 2
-  1 2 2 0
-  1 2 2 1
-  1 2 3 0
-  1 2 3 1
-  2 0 1 1
-  2 0 1 2
-  2 0 3 1
-  2 0 3 2
-  2 1 1 0
-  2 1 1 2
-  2 1 3 0
-  2 1 3 2
-  2 2 1 0
-  2 2 1 1
-  2 2 3 0
-  2 2 3 1
-  3 0 1 1
-  3 0 1 2
-  3 0 2 1
-  3 0 2 2
-  3 1 1 0
-  3 1 1 2
-  3 1 2 0
-  3 1 2 2
-  3 2 1 0
-  3 2 1 1
-  3 2 2 0
-  3 2 2 1
+  # The allDiff on the s vector
+  s1 0 s2 1;
+  s1 0 s2 2;
+  s1 0 s3 1;
+  s1 0 s3 2;
+  s1 1 s2 0;
+  s1 1 s2 2;
+  s1 1 s3 0;
+  s1 1 s3 2;
+  s1 2 s2 0;
+  s1 2 s2 1;
+  s1 2 s3 0;
+  s1 2 s3 1;
+  s2 0 s1 1;
+  s2 0 s1 2;
+  s2 0 s3 1;
+  s2 0 s3 2;
+  s2 1 s1 0;
+  s2 1 s1 2;
+  s2 1 s3 0;
+  s2 1 s3 2;
+  s2 2 s1 0;
+  s2 2 s1 1;
+  s2 2 s3 0;
+  s2 2 s3 1;
+  s3 0 s1 1;
+  s3 0 s1 2;
+  s3 0 s2 1;
+  s3 0 s2 2;
+  s3 1 s1 0;
+  s3 1 s1 2;
+  s3 1 s2 0;
+  s3 1 s2 2;
+  s3 2 s1 0;
+  s3 2 s1 1;
+  s3 2 s2 0;
+  s3 2 s2 1;
+  # The allDiff on the v vector
+  v1 1 v2 2;
+  v1 2 v2 1;
+  v2 1 v1 2;
+  v2 2 v1 1;
+  # The table constraint 
+  aux1 2 s1 1;
+  aux1 2 s2 0;
+  aux1 2 v1 1;
+  aux1 3 s1 2;
+  aux1 3 s2 0;
+  aux1 3 v1 2;
+  aux1 4 s1 0;
+  aux1 4 s2 1;
+  aux1 4 v1 1;
+  aux1 6 s1 2;
+  aux1 6 s2 1;
+  aux1 6 v1 1;
+  aux1 7 s1 0;
+  aux1 7 s2 2;
+  aux1 7 v1 2;
+  aux1 8 s1 1;
+  aux1 8 s2 2;
+  aux1 8 v1 1;
+  aux2 2 s2 1;
+  aux2 2 s3 0;
+  aux2 2 v2 1;
+  aux2 3 s2 2;
+  aux2 3 s3 0;
+  aux2 3 v2 2;
+  aux2 4 s2 0;
+  aux2 4 s3 1;
+  aux2 4 v2 1;
+  aux2 6 s2 2;
+  aux2 6 s3 1;
+  aux2 6 v2 1;
+  aux2 7 s2 0;
+  aux2 7 s3 2;
+  aux2 7 v2 2;
+  aux2 8 s2 1;
+  aux2 8 s3 2;
+  aux2 8 v2 1;
 \end{minted}
 
 \subsection{A \queens\ input}
 \label{sec:queens_inp}
 
 \begin{minted}{text}
-  1:1 2 3                              
-  2:1 2 3 
-  3:1 2 3 
+  # Columns
+  col1: 1 2 3 4 
+  col2: 1 2 3 4 
+  col3: 1 2 3 4 
+  col4: 1 2 3 4 
   --
-  1 1 3 2
-  1 1 2 3
-  2 1 1 3
-  2 1 3 3
-  3 1 1 2
-  3 1 2 3
-  1 2 3 1
-  1 2 3 3
-  3 2 1 1
-  3 2 1 3
-  1 3 2 1
-  1 3 3 2
-  2 3 1 1
-  2 3 3 1
-  3 3 2 1
-  3 3 1 2
+  # Constraints
+  col1 1 col3 2;
+  col1 1 col4 2;
+  col1 1 col2 3;
+  col1 1 col4 3;
+  col1 1 col2 4;
+  col1 1 col3 4;
+  col2 1 col4 2;
+  col2 1 col1 3;
+  col2 1 col3 3;
+  col2 1 col1 4;
+  col2 1 col3 4;
+  col2 1 col4 4;
+  col3 1 col1 2;
+  col3 1 col2 3;
+  col3 1 col4 3;
+  col3 1 col1 4;
+  col3 1 col2 4;
+  col3 1 col4 4;
+  col4 1 col1 2;
+  col4 1 col2 2;
+  col4 1 col1 3;
+  col4 1 col3 3;
+  col4 1 col2 4;
+  col4 1 col3 4;
+  col1 2 col3 1;
+  col1 2 col4 1;
+  col1 2 col3 3;
+  col1 2 col4 3;
+  col1 2 col2 4;
+  col1 2 col4 4;
+  col2 2 col4 1;
+  col2 2 col4 3;
+  col2 2 col1 4;
+  col2 2 col3 4;
+  col3 2 col1 1;
+  col3 2 col1 3;
+  col3 2 col2 4;
+  col3 2 col4 4;
+  col4 2 col1 1;
+  col4 2 col2 1;
+  col4 2 col1 3;
+  col4 2 col2 3;
+  col4 2 col1 4;
+  col4 2 col3 4;
+  col1 3 col2 1;
+  col1 3 col4 1;
+  col1 3 col3 2;
+  col1 3 col4 2;
+  col1 3 col3 4;
+  col1 3 col4 4;
+  col2 3 col1 1;
+  col2 3 col3 1;
+  col2 3 col4 2;
+  col2 3 col4 4;
+  col3 3 col2 1;
+  col3 3 col4 1;
+  col3 3 col1 2;
+  col3 3 col1 4;
+  col4 3 col1 1;
+  col4 3 col3 1;
+  col4 3 col1 2;
+  col4 3 col2 2;
+  col4 3 col1 4;
+  col4 3 col2 4;
+  col1 4 col2 1;
+  col1 4 col3 1;
+  col1 4 col2 2;
+  col1 4 col4 2;
+  col1 4 col3 3;
+  col1 4 col4 3;
+  col2 4 col1 1;
+  col2 4 col3 1;
+  col2 4 col4 1;
+  col2 4 col1 2;
+  col2 4 col3 2;
+  col2 4 col4 3;
+  col3 4 col1 1;
+  col3 4 col2 1;
+  col3 4 col4 1;
+  col3 4 col2 2;
+  col3 4 col4 2;
+  col3 4 col1 3;
+  col4 4 col2 1;
+  col4 4 col3 1;
+  col4 4 col1 2;
+  col4 4 col3 2;
+  col4 4 col1 3;
+  col4 4 col2 3;
 \end{minted}
 
 \end{document}

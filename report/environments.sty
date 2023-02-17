@@ -6,7 +6,7 @@
       \begin{tikzpicture}
         \begin{axis}[
             legend pos=north west,
-            axis lines=middle, 
+            axis lines=middle,
             axis line style={->},
             ylabel near ticks,
             xlabel near ticks,
@@ -20,22 +20,22 @@
         \end{axis}
       \end{tikzpicture}
     }
-    \caption{#2}
+    \caption{#2 (in seconds)}
     \label{img:#1-#2}
   \end{subfigure}
 }
 
 \newcommand{\plotProblem}[1]{
   \begin{figure}%[!htb]
-  % fails,solutions,tot time,backtrack time,revise time
-  \centering
-  \test{#1}{backtrack time}
-  \test{#1}{revise time}
+    % fails,solutions,tot time,backtrack time,revise time
+    \centering
+    \test{#1}{backtrack time}
+    \test{#1}{revise time}
 
-  \test{#1}{tot time}
+    \test{#1}{tot time}
 
-  \caption{Time taken by #1}
-  \label{img:#1}
+    \caption{Time taken by #1}
+    \label{img:#1}
 
   \end{figure}
 }
