@@ -4,8 +4,10 @@ let make_domains n =
   let buf_head = Buffer.create 7000 in
   let buf_tail = Buffer.create 7000 in
   (* Adding domains *)
+  Buffer.add_string buf_head "# Columns\n";
+  Buffer.add_string buf_tail "# Constraints\n";
   for row = 1 to n do
-    Buffer.add_string buf_head (string_of_int row ^ ":");
+    Buffer.add_string buf_head ("col" ^ string_of_int row ^ ": ");
     for col = 1 to n do
       Buffer.add_string buf_head (string_of_int col ^ " ");
       for row' = 1 to n do
@@ -13,7 +15,7 @@ let make_domains n =
           if abs (col' - col) <> abs (row' - row) && col <> col' && row <> row'
           then
             Buffer.add_string buf_tail
-              (Printf.sprintf "%d %d %d %d\n" col row col' row')
+              (Printf.sprintf "col%d %d col%d %d;\n" col row col' row')
         done
       done
     done;
