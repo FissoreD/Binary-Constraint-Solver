@@ -16,7 +16,7 @@ while [ "$i" -le "$stop" ]; do
 
   echo "Running AC-$al"; 
   
-  ./_build/default/bin/main.exe -queens $i -ac $al -only-sol; 
+  ./_build/default/bin/main.exe -queens $i -ac $al -only-stats; 
 
   done; 
 

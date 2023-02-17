@@ -15,7 +15,7 @@ while [ "$i" -le "$stop" ]; do
  for al in ${algo[@]}; do 
 
   echo "Running AC-$al"; 
-  ./_build/default/bin/main.exe -all-int $i -ac $al -only-sol; 
+  ./_build/default/bin/main.exe -all-int $i -ac $al -only-stats; 
 
   done; 
 

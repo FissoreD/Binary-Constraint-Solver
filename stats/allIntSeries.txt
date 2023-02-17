@@ -1,298 +1,364 @@
-All Interval Series                  
+All Interval Series                   
+All Interval Series for : 1
+Running AC-3
+------------------------------
+The number of fails is 0
+The number of solutions is 1
+Total Time: 0.000046
+Time of backtracks: 0.000000
+Time of revise: 0.000000
+------------------------------
+Running AC-4
+------------------------------
+The number of fails is 0
+The number of solutions is 1
+Total Time: 0.000045
+Time of backtracks: 0.000000
+Time of revise: 0.000000
+------------------------------
+Running AC-2001
+------------------------------
+The number of fails is 0
+The number of solutions is 1
+Total Time: 0.000038
+Time of backtracks: 0.000000
+Time of revise: 0.000000
+------------------------------
+Running AC-6
+------------------------------
+The number of fails is 0
+The number of solutions is 1
+Total Time: 0.000037
+Time of backtracks: 0.000000
+Time of revise: 0.000000
+------------------------------
+All Interval Series for : 2
+Running AC-3
+------------------------------
+The number of fails is 0
+The number of solutions is 2
+Total Time: 0.000052
+Time of backtracks: 0.000001
+Time of revise: 0.000004
+------------------------------
+Running AC-4
+------------------------------
+The number of fails is 0
+The number of solutions is 2
+Total Time: 0.000044
+Time of backtracks: 0.000000
+Time of revise: 0.000001
+------------------------------
+Running AC-2001
+------------------------------
+The number of fails is 0
+The number of solutions is 2
+Total Time: 0.000051
+Time of backtracks: 0.000000
+Time of revise: 0.000005
+------------------------------
+Running AC-6
+------------------------------
+The number of fails is 0
+The number of solutions is 2
+Total Time: 0.000053
+Time of backtracks: 0.000000
+Time of revise: 0.000002
+------------------------------
 All Interval Series for : 3
 Running AC-3
 ------------------------------
 The number of fails is 2
 The number of solutions is 4
-Total Time: 0.000192
-Time of backtracks: 0.000008
-Time of revise: 0.000131
+Total Time: 0.000317
+Time of backtracks: 0.000005
+Time of revise: 0.000221
 ------------------------------
 Running AC-4
 ------------------------------
 The number of fails is 2
 The number of solutions is 4
-Total Time: 0.000108
-Time of backtracks: 0.000014
-Time of revise: 0.000031
+Total Time: 0.000150
+Time of backtracks: 0.000015
+Time of revise: 0.000037
 ------------------------------
 Running AC-2001
 ------------------------------
 The number of fails is 2
 The number of solutions is 4
-Total Time: 0.000171
-Time of backtracks: 0.000010
-Time of revise: 0.000085
+Total Time: 0.000153
+Time of backtracks: 0.000006
+Time of revise: 0.000089
 ------------------------------
 Running AC-6
 ------------------------------
 The number of fails is 2
 The number of solutions is 4
-Total Time: 0.000157
-Time of backtracks: 0.000009
-Time of revise: 0.000061
+Total Time: 0.000145
+Time of backtracks: 0.000010
+Time of revise: 0.000084
 ------------------------------
 All Interval Series for : 4
 Running AC-3
 ------------------------------
-The number of fails is 16
+The number of fails is 8
 The number of solutions is 4
-Total Time: 0.001282
-Time of backtracks: 0.000245
-Time of revise: 0.000930
+Total Time: 0.002056
+Time of backtracks: 0.000035
+Time of revise: 0.001836
 ------------------------------
 Running AC-4
 ------------------------------
-The number of fails is 16
+The number of fails is 8
 The number of solutions is 4
-Total Time: 0.000295
-Time of backtracks: 0.000063
-Time of revise: 0.000136
+Total Time: 0.000674
+Time of backtracks: 0.000081
+Time of revise: 0.000213
 ------------------------------
 Running AC-2001
 ------------------------------
-The number of fails is 16
+The number of fails is 8
 The number of solutions is 4
-Total Time: 0.000529
-Time of backtracks: 0.000036
-Time of revise: 0.000382
+Total Time: 0.000892
+Time of backtracks: 0.000046
+Time of revise: 0.000527
 ------------------------------
 Running AC-6
 ------------------------------
-The number of fails is 16
+The number of fails is 8
 The number of solutions is 4
-Total Time: 0.000860
-Time of backtracks: 0.000044
-Time of revise: 0.000710
+Total Time: 0.000955
+Time of backtracks: 0.000067
+Time of revise: 0.000782
 ------------------------------
 All Interval Series for : 5
 Running AC-3
 ------------------------------
-The number of fails is 52
+The number of fails is 32
 The number of solutions is 8
-Total Time: 0.005902
-Time of backtracks: 0.000174
-Time of revise: 0.005431
+Total Time: 0.006669
+Time of backtracks: 0.000134
+Time of revise: 0.006284
 ------------------------------
 Running AC-4
 ------------------------------
-The number of fails is 52
+The number of fails is 32
 The number of solutions is 8
-Total Time: 0.001721
-Time of backtracks: 0.000296
-Time of revise: 0.001163
+Total Time: 0.001410
+Time of backtracks: 0.000322
+Time of revise: 0.000836
 ------------------------------
 Running AC-2001
 ------------------------------
-The number of fails is 52
+The number of fails is 32
 The number of solutions is 8
-Total Time: 0.003121
-Time of backtracks: 0.000227
-Time of revise: 0.002630
+Total Time: 0.003648
+Time of backtracks: 0.000336
+Time of revise: 0.003035
 ------------------------------
 Running AC-6
 ------------------------------
-The number of fails is 52
+The number of fails is 32
 The number of solutions is 8
-Total Time: 0.002794
-Time of backtracks: 0.000210
-Time of revise: 0.002277
+Total Time: 0.002977
+Time of backtracks: 0.000269
+Time of revise: 0.002378
 ------------------------------
 All Interval Series for : 6
 Running AC-3
 ------------------------------
-The number of fails is 154
+The number of fails is 108
 The number of solutions is 24
-Total Time: 0.030713
-Time of backtracks: 0.000665
-Time of revise: 0.028933
+Total Time: 0.030930
+Time of backtracks: 0.000488
+Time of revise: 0.029488
 ------------------------------
 Running AC-4
 ------------------------------
-The number of fails is 154
+The number of fails is 108
 The number of solutions is 24
-Total Time: 0.010762
-Time of backtracks: 0.002186
-Time of revise: 0.006491
+Total Time: 0.007198
+Time of backtracks: 0.002032
+Time of revise: 0.004137
 ------------------------------
 Running AC-2001
 ------------------------------
-The number of fails is 154
+The number of fails is 108
 The number of solutions is 24
-Total Time: 0.018294
-Time of backtracks: 0.001323
-Time of revise: 0.015503
+Total Time: 0.013768
+Time of backtracks: 0.000815
+Time of revise: 0.012131
 ------------------------------
 Running AC-6
 ------------------------------
-The number of fails is 154
+The number of fails is 108
 The number of solutions is 24
-Total Time: 0.015847
-Time of backtracks: 0.001428
-Time of revise: 0.013080
+Total Time: 0.016217
+Time of backtracks: 0.001408
+Time of revise: 0.013696
 ------------------------------
 All Interval Series for : 7
 Running AC-3
 ------------------------------
-The number of fails is 664
+The number of fails is 424
 The number of solutions is 32
-Total Time: 0.162208
-Time of backtracks: 0.002617
-Time of revise: 0.154823
+Total Time: 0.133464
+Time of backtracks: 0.001348
+Time of revise: 0.129009
 ------------------------------
 Running AC-4
 ------------------------------
-The number of fails is 664
+The number of fails is 424
 The number of solutions is 32
-Total Time: 0.043417
-Time of backtracks: 0.010614
-Time of revise: 0.026982
+Total Time: 0.029772
+Time of backtracks: 0.008374
+Time of revise: 0.017563
 ------------------------------
 Running AC-2001
 ------------------------------
-The number of fails is 664
+The number of fails is 424
 The number of solutions is 32
-Total Time: 0.079351
-Time of backtracks: 0.004352
-Time of revise: 0.070324
+Total Time: 0.057235
+Time of backtracks: 0.002634
+Time of revise: 0.051215
 ------------------------------
 Running AC-6
 ------------------------------
-The number of fails is 664
+The number of fails is 424
 The number of solutions is 32
-Total Time: 0.078835
-Time of backtracks: 0.005446
-Time of revise: 0.067243
+Total Time: 0.072750
+Time of backtracks: 0.005618
+Time of revise: 0.063446
 ------------------------------
 All Interval Series for : 8
 Running AC-3
 ------------------------------
-The number of fails is 2636
+The number of fails is 1784
 The number of solutions is 40
-Total Time: 0.756209
-Time of backtracks: 0.009140
-Time of revise: 0.730097
+Total Time: 0.587881
+Time of backtracks: 0.005706
+Time of revise: 0.569774
 ------------------------------
 Running AC-4
 ------------------------------
-The number of fails is 2636
+The number of fails is 1784
 The number of solutions is 40
-Total Time: 0.211161
-Time of backtracks: 0.053543
-Time of revise: 0.132538
+Total Time: 0.148946
+Time of backtracks: 0.032362
+Time of revise: 0.099233
 ------------------------------
 Running AC-2001
 ------------------------------
-The number of fails is 2636
+The number of fails is 1784
 The number of solutions is 40
-Total Time: 0.339107
-Time of backtracks: 0.015511
-Time of revise: 0.306793
+Total Time: 0.236658
+Time of backtracks: 0.011093
+Time of revise: 0.212549
 ------------------------------
 Running AC-6
 ------------------------------
-The number of fails is 2636
+The number of fails is 1784
 The number of solutions is 40
-Total Time: 0.370936
-Time of backtracks: 0.021882
-Time of revise: 0.327763
+Total Time: 0.386830
+Time of backtracks: 0.032476
+Time of revise: 0.335083
 ------------------------------
 All Interval Series for : 9
 Running AC-3
 ------------------------------
-The number of fails is 11450
+The number of fails is 7636
 The number of solutions is 120
-Total Time: 4.186883
-Time of backtracks: 0.054241
-Time of revise: 4.041381
+Total Time: 3.058716
+Time of backtracks: 0.037041
+Time of revise: 2.952780
 ------------------------------
 Running AC-4
 ------------------------------
-The number of fails is 11450
+The number of fails is 7636
 The number of solutions is 120
-Total Time: 1.108953
-Time of backtracks: 0.265404
-Time of revise: 0.731115
+Total Time: 0.724682
+Time of backtracks: 0.171196
+Time of revise: 0.475751
 ------------------------------
 Running AC-2001
 ------------------------------
-The number of fails is 11450
+The number of fails is 7636
 The number of solutions is 120
-Total Time: 1.930337
-Time of backtracks: 0.089452
-Time of revise: 1.753178
+Total Time: 1.269078
+Time of backtracks: 0.057899
+Time of revise: 1.149337
 ------------------------------
 Running AC-6
 ------------------------------
-The number of fails is 11450
+The number of fails is 7636
 The number of solutions is 120
-Total Time: 2.206744
-Time of backtracks: 0.135895
-Time of revise: 1.951810
+Total Time: 2.016095
+Time of backtracks: 0.162099
+Time of revise: 1.766620
 ------------------------------
 All Interval Series for : 10
 Running AC-3
 ------------------------------
-The number of fails is 100610
+The number of fails is 35186
 The number of solutions is 296
-Total Time: 40.786280
-Time of backtracks: 0.481823
-Time of revise: 39.447263
+Total Time: 17.191858
+Time of backtracks: 0.174673
+Time of revise: 16.684066
 ------------------------------
 Running AC-4
 ------------------------------
-The number of fails is 100610
+The number of fails is 35186
 The number of solutions is 296
-Total Time: 12.376379
-Time of backtracks: 2.900455
-Time of revise: 8.265204
+Total Time: 3.995968
+Time of backtracks: 0.922412
+Time of revise: 2.693242
 ------------------------------
 Running AC-2001
 ------------------------------
-The number of fails is 100610
+The number of fails is 35186
 The number of solutions is 296
-Total Time: 19.145181
-Time of backtracks: 0.843990
-Time of revise: 17.444077
+Total Time: 6.882091
+Time of backtracks: 0.314366
+Time of revise: 6.247287
 ------------------------------
 Running AC-6
 ------------------------------
-The number of fails is 100610
+The number of fails is 35186
 The number of solutions is 296
-Total Time: 24.220827
-Time of backtracks: 1.412298
-Time of revise: 21.624164
+Total Time: 13.320033
+Time of backtracks: 1.009219
+Time of revise: 11.843753
 ------------------------------
 All Interval Series for : 11
 Running AC-3
 ------------------------------
-The number of fails is 502014
+The number of fails is 364312
 The number of solutions is 648
-Total Time: 257.071176
-Time of backtracks: 2.577261
-Time of revise: 249.871826
+Total Time: 179.031651
+Time of backtracks: 1.657202
+Time of revise: 174.095635
 ------------------------------
 Running AC-4
 ------------------------------
-The number of fails is 502014
+The number of fails is 364312
 The number of solutions is 648
-Total Time: 81.731120
-Time of backtracks: 19.318634
-Time of revise: 55.322336
+Total Time: 71.180035
+Time of backtracks: 16.908378
+Time of revise: 48.499497
 ------------------------------
 Running AC-2001
 ------------------------------
-The number of fails is 502014
+The number of fails is 364312
 The number of solutions is 648
-Total Time: 115.172587
-Time of backtracks: 4.983683
-Time of revise: 105.498969
+Total Time: 89.493557
+Time of backtracks: 3.935604
+Time of revise: 81.854224
 ------------------------------
 Running AC-6
 ------------------------------
-The number of fails is 502014
+The number of fails is 364312
 The number of solutions is 648
-Total Time: 170.590011
-Time of backtracks: 9.136890
-Time of revise: 154.461097
+Total Time: 207.120731
+Time of backtracks: 15.770302
+Time of revise: 185.285046
 ------------------------------
