@@ -139,9 +139,9 @@ module Make (AC : Arc_consistency.Arc_consistency) : Solver = struct
     let time = Unix.gettimeofday () in
     let rec aux sol : string Graph.domain list -> unit = function
       | [] ->
+          Int.incr number_of_solutions;
           if not only_stats then print_sol sol;
-          if one_sol then raise Stop_One_Sol;
-          Int.incr number_of_solutions
+          if one_sol then raise Stop_One_Sol
       | hd :: tl ->
           DLL.iter
             (fun v ->
