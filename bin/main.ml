@@ -22,16 +22,16 @@ let () =
         ("-v", Set verbose, " Set the verbose mode");
         ("-f", Set_string path, " Set the input file");
         ("-first", Set one_sol, " Stop after the first valid solution");
-        ( "-queens",
-          Set_int queens,
-          "[N] Set the size of the queen solver (min N: 5)" );
+        ("-queens", Set_int queens, "[N] Set the size of the queen solver");
         ( "-all-int",
           Set_int allInt,
-          "[N] Set the size of the allIntervalSeries solver (min N: 3)" );
+          "[N] Set the size of the allIntervalSeries solver" );
         ( "-only-stats",
           Set only_stats,
-          " Only print the number of fails and solutions" );
-        ("-only-valid", Set only_valid, " Print only the valid solutions");
+          " Only print the number of fails and the number of solutions" );
+        ( "-only-valid",
+          Set only_valid,
+          " Print only the valid solutions (not the fails)" );
         ("-d", Set debug, " Debug mode");
         ("-print-inp", Set print_inp, " Print the input graph");
       ]
