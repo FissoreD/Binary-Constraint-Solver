@@ -287,8 +287,9 @@ Inside the functor we can find all the auxiliary attributes and functions allowi
 
 \section{Run the project}
 \label{sec:arg}
+To run the project, you have to install all the dependencies via the command \texttt{./dependencies.sh} (this file should be executable: \texttt{chmod u+x ./dependencies.sh}).
 
-In order to simplify the interaction with the solver, the main program can be launched from the command line. It accepts a list of optional parameters to set the input of the problem, the print mode, the arc consistency algorithm \etc.
+In order to simplify the interaction with the solver, the main program accepts a list of optional parameters to set the input of the problem, the print mode, the arc consistency algorithm \etc.
 
 Here a list of all the optional parameters and their behavior:
 
@@ -297,10 +298,10 @@ Here a list of all the optional parameters and their behavior:
   -v           Set the verbose mode
   -f           Set the input file
   -first       Stop after the first valid solution
-  -queens [N]  Set the size of the queen solver (min N: 5)
-  -all-int [N] Set the size of the allIntervalSeries solver (min N: 3)
-  -only-sol    Only print the number of fails and solutions
-  -only-valid  Print only the valid solutions
+  -queens [N]  Set the size of the queen solver
+  -all-int [N] Set the size of the allIntervalSeries solver
+  -only-stats  Only print the number of fails and the number of solutions
+  -only-valid  Print only the valid solutions (not the fails)
   -d           Debug mode
   -print-inp   Print the input graph
   -help        Display this list of options
