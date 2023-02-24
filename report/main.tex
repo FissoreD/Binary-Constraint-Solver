@@ -54,7 +54,7 @@ In order to use the minimum amount of space, \ac{2001} stores for each value $v_
 
 \section{My Implementation}
 
-I have developed my solver in \ml\ (v. 4.13.1) using the \textit{Base} library since I have noticed better speed performances compared of the standard \ml\ modules. In the following subsections I will provide a brief explanation of the most important data structure I have implemented.
+I have developed my solver in \ml\ (v. 4.13.1) using the \textit{Base} library since I have noticed better speed performances compared of the standard \ml\ modules. In the following subsections I will provide a brief explanation of the most important data structure I have implemented. This implementation is available at \url{https://github.com/FissoreD/Binary-Constraint-Solver/}.
 
 \subsection{Doubly linked lists}
 
@@ -308,7 +308,7 @@ Here a list of all the optional parameters and their behavior:
   --help       Display this list of options
 \end{minted}
 
-The \texttt{-f} parameter takes a file path that will be used as the input graph of the problem. The file should follow the grammar proposed in \cref{sec:parser}.
+The \texttt{-f} parameter takes a file path that will be used as the input graph of the problem. The file should respect the grammar proposed in \cref{sec:parser}.
 
 \subsection{The parser}
 \label{sec:parser}
