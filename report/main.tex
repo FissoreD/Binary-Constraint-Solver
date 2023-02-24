@@ -54,7 +54,7 @@ In order to use the minimum amount of space, \ac{2001} stores for each value $v_
 
 \section{My Implementation}
 
-I have developed my solver in \ml\ (v. 4.13.1) using the \textit{Base} library since I have noticed better speed performances compared of the standard \ml\ modules. In the following subsections I will provide a brief explanation of the most important data structure I have implemented. This implementation is available at \url{https://github.com/FissoreD/Binary-Constraint-Solver/}.
+I have developed my solver in \ml\ using the \textit{Base} library since I have noticed better speed performances compared of the standard \ml\ modules. My solver is able to compute all the solutions of the problem printing them on the console. A set of optional parameters in the command line allow to modify the input of the problem, the arc consistency algorithm and the verbosity level. All of these optional parameters are listed in \cref{sec:arg}. This implementation is available at \url{https://github.com/FissoreD/Binary-Constraint-Solver/}. In the following subsections I will provide a brief explanation of the most important data structures I have implemented.
 
 \subsection{Doubly linked lists}
 
@@ -234,9 +234,9 @@ The \ac{2001} data structure is particularly easy to implement: \ds\ contains th
 
 \subsection{The solver}
 
-The solver is the main function behind the resolution of a CP problem. The solver select the values of the domains and each time a selection is performed, the AC algorithm is asked to give back the delta domains.
+The solver is the main function behind the resolution of a CP problem. The solver selects the values of the domains and each time a selection is performed, the AC algorithm is asked to give back the delta domains.
 
-My solver in OCaml is a \textit{functor} taking in parameter a module of type \textit{Arc\_consistency}.
+My solver is a \textit{functor} taking in parameter a module of type \textit{Arc\_consistency}.
 
 The solver has two public functions:
 \begin{minted}{ocaml}
@@ -258,9 +258,9 @@ The solver has two public functions:
 
 \end{minted}
 
-These function aim to respectively initiate the problem inside the solver taking a graph $\mathcal{G}$ in input, and to find one or all the solutions obtainable from $\mathcal{G}$. All the optional argument of the \textit{find\_solution} method want to parametrize the solver; they are detailed in \cref{sec:arg}.
+These functions aim to respectively initiate the problem inside the solver taking a graph $\mathcal{G}$ in input, and to find one or all the solutions obtainable from $\mathcal{G}$. All the optional argument of the \textit{find\_solution} method want to parametrize the solver; they are detailed in \cref{sec:arg}.
 
-Inside the functor we can find all the auxiliary attributes and functions allowing to solve the given problem.
+Inside the functor we can find all the auxiliary members allowing to solve the given problem.
 
 \begin{minted}{ocaml}
   type 'a stack_type :
@@ -272,6 +272,8 @@ Inside the functor we can find all the auxiliary attributes and functions allowi
   val propagation_select_by_node : ?verbose:bool -> string Graph.value -> unit
   val back_track : unit -> unit
 \end{minted}
+
+Concerning the search strategy, my solver sort the domains in the alphabetic order and the variables are ordered following the order received in input. The modification of these order may improve the performances of the solver, but I did not have the time to test them.
 
 \begin{description}
   \item[stack\_op:] is the stack containing all the modification made inside the domains and inside the Arc-Consistency algorithm. This stack is used in order to backtrack.
@@ -330,7 +332,7 @@ An example of file input can be seen in \cref{sec:input_ex}
 \subsection{Example of commands}
 
 \begin{itemize}
-  \item \texttt{dune exec -- main -queens 3 -ac 3 -only-sol}: run the 3-queens problem with the \ac{3} arc consistency filter and print only the solutions on the console. Result:\\
+  \item \texttt{dune exec -- main -queens 3 -ac 3 -only-sol}: run the 3-queens problem with the \ac{3} arc consistency filter and print only the solutions on the console. Result:
         \begin{minted}{text}
   ------------------------------
   The number of fails is 0
