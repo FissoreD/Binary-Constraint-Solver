@@ -287,7 +287,7 @@ Inside the functor we can find all the auxiliary attributes and functions allowi
 
 \section{Run the project}
 \label{sec:arg}
-To run the project, you have to install all the dependencies via the command \texttt{./dependencies.sh} (this file should be executable: \texttt{chmod u+x ./dependencies.sh}).
+To run the project, you should be on a \textit{Linux} environment with \textit{Ocaml} (v. $\geq 4.13.1$) and \textit{Opam} (v. $\geq 2.1.2$). The dependencies can be installed via the file \texttt{./dependencies.sh} (this file should be executable: \texttt{chmod u+x ./dependencies.sh}).
 
 In order to simplify the interaction with the solver, the main program accepts a list of optional parameters to set the input of the problem, the print mode, the arc consistency algorithm \etc.
 
@@ -343,7 +343,7 @@ An example of file input can be seen in \cref{sec:input_ex}
 
   \item \texttt{dune exec -- main -f ./graphs/input\_4.txt -ac 2001 -v} runs \ac{2001} in verbose mode \\ from the file \texttt{./graphs/input\_4.text} and produces the result proposed in \cref{sec:output_ex} \footnote{The file \texttt{./graphs/input\_4.text} is the one depicted in \cref{sec:input_ex}}
 
-  \item the bash executables \texttt{./allInt.sh} and \texttt{./queens.sh} run respectively the \allint\ and the \queens\ problem for $n$ going from $0$ to respectively $12$ and $11$. Both executable accept two integers in parameter changing the default bound of computation. For example, \texttt{./allInt.sh 3 7} will launch the \allint\ for $n$ from $3$ to $7$.
+  \item the bash executables \texttt{./allInt.sh} and \texttt{./queens.sh} run respectively the \allint\ and the \queens\ problem for $n$ going from $0$ to respectively $12$ and $11$. Both executable accept two integers in parameter changing the default bound of computation. For example, \texttt{./allInt.sh 3 7} will launch the \allint\ for $n$ starting from $3$ to $7$.
 
 \end{itemize}
 
